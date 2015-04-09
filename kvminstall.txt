@@ -113,6 +113,24 @@ sudo modprobe -r kvm_intel
 sudo modprobe kvm_intel nested=1
 
 
+############################################################################################################
+ubuntu 12.04 usb install
+
+u盘启动系统，在光驱检测会出现的错误页面。
+
+Your installation CD-couldn't be mounted. This probably means that the CD-ROM was not in the drive. If so you can insert it and try again
+
+Retry mounting the CD-ROM?
+
+fix:
+1.alt + F2
+2.ls /dev/sd*
+3. mount /dev/sda4 /mnt
+4. mount /mnt/ubuntu-12.04.3-server-amd64.iso /cdrom
+5. alt + F1
+
+
+
 
 
 
