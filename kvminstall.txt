@@ -1,0 +1,124 @@
+1. apt source init.
+
+cat > /etc/apt/sources.list << EOF
+deb http://mirrors.sohu.com/ubuntu/ precise main restricted
+deb-src http://mirrors.sohu.com/ubuntu/ precise main restricted
+deb http://mirrors.sohu.com/ubuntu/ precise-updates main restricted
+deb-src http://mirrors.sohu.com/ubuntu/ precise-updates main restricted
+deb http://mirrors.sohu.com/ubuntu/ precise universe
+deb-src http://mirrors.sohu.com/ubuntu/ precise universe
+deb http://mirrors.sohu.com/ubuntu/ precise-updates universe
+deb-src http://mirrors.sohu.com/ubuntu/ precise-updates universe
+deb http://mirrors.sohu.com/ubuntu/ precise multiverse
+deb-src http://mirrors.sohu.com/ubuntu/ precise multiverse
+deb http://mirrors.sohu.com/ubuntu/ precise-updates multiverse
+deb-src http://mirrors.sohu.com/ubuntu/ precise-updates multiverse
+deb http://mirrors.sohu.com/ubuntu/ precise-backports main restricted universe multiverse
+deb-src http://mirrors.sohu.com/ubuntu/ precise-backports main restricted universe multiverse
+deb http://mirrors.sohu.com/ubuntu/ precise-security main restricted
+deb-src http://mirrors.sohu.com/ubuntu/ precise-security main restricted
+deb http://mirrors.sohu.com/ubuntu/ precise-security universe
+deb-src http://mirrors.sohu.com/ubuntu/ precise-security universe
+deb http://mirrors.sohu.com/ubuntu/ precise-security multiverse
+deb-src http://mirrors.sohu.com/ubuntu/ precise-security multiverse
+deb http://extras.ubuntu.com/ubuntu precise main
+deb-src http://extras.ubuntu.com/ubuntu precise main
+EOF
+
+2. check cpu and update apt.
+
+egrep 'svm|vmx' /proc/cpuinfo
+sudo apt-get install openssh-server
+sudo apt-get update
+
+3. install kvm from apt source.
+sudo apt-get install kvm qemu
+sudo apt-get install virtinst python-libvirt virt-viewer virt-manager
+sudo apt-get install bridge-utils
+
+4. add br0 netcards.
+nano /etc/network/interfaces
+
+auto lo
+iface lo inet loopback
+auto eth0
+iface eth0 inet manual
+auto br0
+iface br0 inet static
+address 192.168.1.10
+netmask 255.255.255.0
+gateway 192.168.1.1
+bridge_ports eth0
+
+sudo /etc/init.d/networking restart
+
+5. create first vm.
+sudo mount -o loop /home/conan/os/u1204.iso /home/conan/os/ubuntu
+
+sudo virt-install --connect=qemu:///system \
+--name g1 \
+--ram 2048 \
+--vcpus=2 \
+--os-type=linux \
+--os-variant=ubuntuprecise \
+--accelerate \
+--hvm \
+--disk path=/home/conan/os/g1.img,size=6,bus=virtio \
+--location /home/conan/os/ubuntu \
+--extra-args='console=tty0 console=ttyS0' \
+--network bridge=br0,model=virtio \
+--graphics none
+
+6. open vnc_listen port, finished with xming
+nano /etc/libvirt/qemu.conf
+vnc_listen="0.0.0.0"
+sudo /etc/init.d/libvirt-bin restart
+
+sudo virt-install --connect=qemu:///system \
+--name g2 \
+--ram 2048 \
+--vcpus=2 \
+--os-type=linux \
+--os-variant=ubuntuprecise \
+--accelerate \
+--hvm \
+--disk path=/home/conan/os/g2.img,size=6,bus=virtio \
+--cdrom /home/conan/os/u1204.iso \
+--network bridge=br0,model=virtio \
+--graphics vnc
+
+7. create winxp.
+sudo virt-install --connect=qemu:///system \
+--name g3 \
+--ram 1024 \
+--vcpus=1 \
+--os-type=windows \
+--os-variant=winxp \
+--accelerate \
+--hvm \
+--disk path=/home/conan/os/g3.img,size=4 \
+--cdrom /home/conan/os/xp.iso \
+--network bridge=br0,model=ne2k_pci \
+--graphics vnc
+
+8. some errors.
+libvirtError: internal error Process exited while reading console log output: char device redirected to /dev/pts/4
+Could not access KVM kernel module: Permission denied
+failed to initialize KVM: Permission denied
+No accelerator found!
+
+fix it:
+sudo rmmod kvm_intel
+sudo modprobe -r kvm_intel
+sudo modprobe kvm_intel nested=1
+
+
+
+
+
+
+
+
+
+
+
