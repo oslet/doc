@@ -129,6 +129,10 @@ fix:
 4. mount /mnt/ubuntu-12.04.3-server-amd64.iso /cdrom
 5. alt + F1
 
+9. ubuntu dns settings
+echo "nameserver 202.96.128.86" > /etc/resolvconf/resolv.conf.d/base
+
+
 
 
 
