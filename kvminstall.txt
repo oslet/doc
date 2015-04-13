@@ -112,6 +112,25 @@ sudo rmmod kvm_intel
 sudo modprobe -r kvm_intel
 sudo modprobe kvm_intel nested=1
 
+9. bridge settings
+cat > /etc/network/interfaces
+auto lo
+auto lo inet loopback
+
+auto eth0
+auto br0
+iface eth0 inet manual
+iface br0 inet static
+address 192.168.100.2
+netmask 255.255.255.0
+gateway 192.168.100.1
+dns-nameservers 202.96.128.86
+bridge_ports eth0
+bridge_stp off
+bridge_fd 0
+bridge_maxwait 0
+EOF
+
 
 ############################################################################################################
 ubuntu 12.04 usb install
