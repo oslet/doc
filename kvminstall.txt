@@ -28,7 +28,7 @@ EOF
 2. check cpu and update apt.
 
 egrep 'svm|vmx' /proc/cpuinfo
-sudo apt-get install openssh-server
+sudo apt-get install openssh-server xorg-server
 sudo apt-get update
 
 3. install kvm from apt source.
@@ -102,7 +102,7 @@ sudo virt-install --connect=qemu:///system \
 --graphics vnc
 
 8. some errors.
-libvirtError: internal error Process exited while reading console log output: char device redirected to /dev/pts/4
+(1).libvirtError: internal error Process exited while reading console log output: char device redirected to /dev/pts/4
 Could not access KVM kernel module: Permission denied
 failed to initialize KVM: Permission denied
 No accelerator found!
@@ -112,6 +112,20 @@ sudo rmmod kvm_intel
 sudo modprobe -r kvm_intel
 sudo modprobe kvm_intel nested=1
 
+(2).Traceback (most recent call last):
+  File "/usr/bin/virt-install", line 41, in <module>
+    cli.setupGettext()
+  File "/usr/lib/python2.7/dist-packages/virtinst/cli.py", line 147, in setupGettext
+    locale.setlocale(locale.LC_ALL, '')
+  File "/usr/lib/python2.7/locale.py", line 539, in setlocale
+    return _setlocale(category, locale)
+locale.Error: unsupported locale setting
+
+fix it:
+export LANG=en_US.UTF-8
+export LANGUAGE=en_US.UTF-8
+export LC_CTYPE=en_US.UTF-8
+export LC_ALL=en_US.UTF-8
 
 ############################################################################################################
 ubuntu 12.04 usb install
@@ -131,6 +145,22 @@ fix:
 
 9. ubuntu dns settings
 echo "nameserver 202.96.128.86" > /etc/resolvconf/resolv.conf.d/base
+
+10. kvm usage
+连接：virsh --connect qemu:///system
+生成kvm虚拟机：virt-install
+查看在运行的虚拟机：virsh list
+查看所有虚拟机：virsh list –all
+查看kvm虚拟机配置文件：virsh dumpxml name
+启动kvm虚拟机：virsh start name
+停止：virsh destroy name
+删除：virsh undefine name
+根据配置文件定义虚拟机：virsh define file-name.xml
+console虚拟机：virsh console name
+
+11. kvm clone 
+virt-clone --connect=qemu:///system -o ubuntu-1 -n redmine -f /data/kvm/images/redmine.img
+
 
 
 

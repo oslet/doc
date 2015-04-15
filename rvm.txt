@@ -36,6 +36,7 @@ svn co https://svn.redmine.org/redmine/branches/3.0-stable redmine-3.0
 ln -s redmine-3.0 redmine
 cd redmine
 sudo apt-get install libmagick++-dev libmysqlclient-dev imagemagick
+bundle install
 
 6.
 cd redmine/config
