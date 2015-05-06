@@ -1,0 +1,9 @@
+ubuntu:
+
+root    ALL=(ALL:ALL) ALL
+%admin ALL=(ALL) ALL
+%sudo   ALL=(ALL) NOPASSWD: NOPASSWD: ALL
+
+centos:
+root    ALL=(ALL)       ALL
+%wheel  ALL=(ALL)       NOPASSWD: ALL
