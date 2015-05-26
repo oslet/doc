@@ -1,0 +1,200 @@
+centos6.5 mini
+1.
+yum update && yum upgrade && reboot
+
+2.
+wget wget http://www.haproxy.org/download/1.5/src/haproxy-1.5.3.tar.gz
+tar zxvf haproxy-1.5.3.tar.gz
+cd haproxy-1.5.3
+sed -i 's/\/usr\/local/\/opt\/haproxy/g' Makefile
+make TARGET=linux26 ARCH=x86_64 USE_OPENSSL=1
+sudo make install
+
+3.
+mkdir -p /opt/haproxy/conf
+nano haproxy.conf
+global
+    log 127.0.0.1 local3
+    chroot /opt/haproxy
+    pidfile /opt/haproxy/haproxy.pid
+    maxconn 40000
+    ulimit-n 204800
+    user haproxy
+    group haproxy
+    daemon
+    # turn on stats unix socket
+    stats socket /var/lib/haproxy/stats
+
+defaults
+    mode http
+    log global
+    option httplog
+    option dontlognull
+    option http-server-close
+    option forwardfor except 127.0.0.0/8
+    option redispatch
+    retries 3
+    timeout http-request 120s
+    timeout queue 5m
+    timeout connect 120s
+    timeout client 10m
+    timeout server 10m
+    timeout http-keep-alive 10s
+    timeout check 10s
+    maxconn 40000
+
+listen admin_stats
+        bind 10.28.170.144:88
+        mode http
+        log 127.0.0.1 local0 err
+        stats uri /happy_stats
+        stats realm www.banggood.com\ happy
+        stats auth happy:happy
+        stats refresh 5s
+
+listen site_status
+        bind 10.28.170.144:89
+        mode http
+        log 127.0.0.1 local0 err
+        monitor-uri /index.php
+
+frontend pubservice
+    bind 50.22.173.113:80
+	bind 50.22.173.113:443 ssl crt /opt/haproxy/banggood.com.pem
+    mode http
+#    acl url_static path_beg -i /akami /css /img /js
+#    acl url_static path_end -i .jpg .gif .png .css .js .html .htm
+#    use_backend static if url_static
+    default_backend app
+
+#backend static
+#    balance roundrobin
+#    server static 10.28.170.143:6565 check
+
+backend app
+        balance roundrobin
+        cookie SESSION_COOKIEX insert indirect nocache
+        option httpchk HEAD /welcome.html HTTP/1.0
+        fullconn 40000
+        server  web4 10.28.170.143:6767 minconn 100 maxconn 1000 cookie 143 weight 1 check inter 2000 rise 2 fall 4
+        server  web1 10.28.170.132:6767 minconn 100 maxconn 1000 cookie 132 weight 1 check inter 2000 rise 2 fall 4
+		
+4.
+nano haproxy.init
+
+#!/bin/bash
+#
+# haproxy
+#
+# chkconfig: 35 85 15
+# description: HAProxy is a free, very fast and reliable solution \
+# offering high availability, load balancing, and \
+# proxying for TCP and HTTP-based applications
+# processname: haproxy
+# config: /etc/haproxy.conf
+# pidfile: /var/run/haproxy.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+. /etc/sysconfig/network
+
+# Check that networking is up.
+[ "$NETWORKING" = "no" ] && exit 0
+
+config="/opt/haproxy/conf/haproxy.conf"
+exec="/opt/haproxy/sbin/haproxy"
+prog=$(basename $exec)
+
+[ -e /etc/sysconfig/$prog ] && . /etc/sysconfig/$prog
+
+lockfile=/opt/haproxy/haproxy.lock
+
+check() {
+    $exec -c -V -f $config
+}
+
+start() {
+    $exec -c -q -f $config
+    if [ $? -ne 0 ]; then
+        echo "Errors in configuration file, check with $prog check."
+        return 1
+    fi
+
+    echo -n $"Starting $prog: "
+    # start it up here, usually something like "daemon $exec"
+    daemon $exec -D -f $config -p /opt/haproxy/$prog.pid
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && touch $lockfile
+    return $retval
+}
+
+stop() {
+    echo -n $"Stopping $prog: "
+    # stop it here, often "killproc $prog"
+    killproc -p /opt/haproxy/$prog.pid $prog
+    retval=$?
+    echo
+    [ $retval -eq 0 ] && rm -f $lockfile
+    return $retval
+}
+
+restart() {
+    $exec -c -q -f $config
+    if [ $? -ne 0 ]; then
+        echo "Errors in configuration file, check with $prog check."
+        return 1
+    fi
+    stop
+    start
+}
+
+reload() {
+    $exec -c -q -f $config
+    if [ $? -ne 0 ]; then
+        echo "Errors in configuration file, check with $prog check."
+        return 1
+    fi
+    echo -n $"Reloading $prog: "
+    $exec -D -f $config -p /opt/haproxy/$prog.pid -sf $(cat /opt/haproxy/$prog.pid)
+    retval=$?
+    echo
+    return $retval
+}
+
+force_reload() {
+    restart
+}
+
+fdr_status() {
+    status -p /opt/haproxy/haproxy.pid $prog
+}
+
+case "$1" in
+    start|stop|restart|reload)
+        $1
+        ;;
+    force-reload)
+        force_reload
+        ;;
+    configtest)
+        check
+        ;;
+    status)
+        fdr_status
+        ;;
+    condrestart|try-restart)
+      [ ! -f $lockfile ] || restart
+    ;;
+    *)
+        echo $"Usage: $0 {start|stop|status|configtest|restart|try-restart|reload|force-reload}"
+        exit 2
+esac
+
+5.
+/etc/init.d/haproxy start
+
+
+

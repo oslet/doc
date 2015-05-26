@@ -1,0 +1,70 @@
+
+1. 建立与公网源同步
+
+#!/bin/bash
+cd /var/www/html/pub
+rsync -av rsync://mirrors.ustc.edu.cn/centos/6.5/os/x86_64/Packages centos/6.5/os/x86_64
+rsync -av rsync://mirrors.ustc.edu.cn/centos/6.5/updates/x86_64/Packages centos/6.5/updates/x86_64
+
+rsync -av rsync://mirrors.ustc.edu.cn/centos/5/os/x86_64/CentOS centos/5/os/x86_64
+rsync -av rsync://mirrors.ustc.edu.cn/centos/5/updates/x86_64/RPMS centos/5/updates/x86_64
+
+epel源同步如下:
+#!/bin/bash
+cd /var/www/html/pub
+rsync -avP centos --password-file=/etc/rsyncd.pwd user01@192.168.38.252::iso
+rsync -avP epel --password-file=/etc/rsyncd.pwd user01@192.168.38.252::iso
+
+2.yum源所在服务器设置rsync服务
+rsyncd.conf内容如下:
+
+uid=root
+gid=root
+max connections=1000
+use chroot=yes
+log file=/var/log/rsyncd.log
+pid file=/var/run/rsyncd.pid
+lock file=/var/run/rsyncd.lock
+
+[iso]
+path=/var/www/html/pub
+comment=iso
+ignore errors=yes
+read only=no
+hosts allow=192.168.35.0/24 192.168.38.0/24 10.20.14.0/24
+hosts deny=*
+exclude=appserver_log.txt logic@pms* *.pyc
+auth users=user01
+secrets file=/etc/rsyncd.pwd
+
+3.创建本地源命令
+yum install createrepo
+cd /var/www/html/pub
+createrepo centos/6.5/os/x86_64
+createrepo centos/6.5/updates/x86_64
+createrepo centos/5.7/os/x86_64
+createrepo centos/5.7/updates/x86_64
+
+4.客户机本地源设置
+nano /etc/yum.repos.d/CentoOS-Base.repo
+
+[base]
+name=CentOS-$releasever - Base
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=os
+baseurl=http://192.168.38.252/pub/centos/$releasever/os/$basearch/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+#released updates
+[updates]
+name=CentOS-$releasever - Updates
+#mirrorlist=http://mirrorlist.centos.org/?release=$releasever&arch=$basearch&repo=updates
+baseurl=http://192.168.38.252/pub/centos/$releasever/updates/$basearch/
+gpgcheck=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-6
+
+5.清理以前yum缓存并重新生成
+yum clean all
+yum makecache
+
+以上设置完成后，可以使用本地源安装软件了.

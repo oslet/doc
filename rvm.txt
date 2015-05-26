@@ -42,12 +42,13 @@ bundle install
 cd redmine/config
 cp database.yml.example database.yml
 cat > database.yml <<EOF
-production:   adapter: mysql  
-database:redmine  
-host: localhost  
-username: redmineuser  
-password: redminepw  
-encoding: utf8
+production:   
+  adapter: mysql2  
+  database: redmine  
+  host: localhost  
+  username: redmineuser  
+  password: redminepw  
+  encoding: utf8
 EOF
 
 rake generate_secret_token 
