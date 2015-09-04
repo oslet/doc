@@ -15,3 +15,9 @@ docker ps -l    //Show the latest created container, include non-running
 docker ps
 docker images   //Show all images (default hides intermediate images)
 docker save -o /mnt/redjack_master.tar redjack/mesos-master   //Save an image to tar archive,  Write to an file, instead of STDOUT
+
+:: keychain:
+
+keychain -k all
+keychain --clear
+eval `keychain --eval --agents ssh id_dsa`
