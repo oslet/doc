@@ -21,3 +21,32 @@ docker save -o /mnt/redjack_master.tar redjack/mesos-master   //Save an image to
 keychain -k all
 keychain --clear
 eval `keychain --eval --agents ssh id_dsa`
+
+
+:: oprofile:
+rm -f /root/.oprofile/daemonrc
+opcontrol --setup --no-vmlinux
+opcontrol --reset
+opcontrol --start
+opcontrol --status
+....some running
+opcontrol --shutdown
+opreport
+
+
+dmesg|grep oprofile
+   oprofile: using NMI timer interrupt.
+ophelp
+   Using timer interrupt.
+
+opcontrol --deinit
+modprobe oprofile timer=1   
+dmesg|grep oprofile|tail -n 1
+opcontrol --init &&  opcontrol --reset &&  opcontrol --start
+... soome running
+opcontrol --shutdown
+
+
+
+
+
