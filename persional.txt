@@ -47,6 +47,15 @@ opcontrol --init &&  opcontrol --reset &&  opcontrol --start
 opcontrol --shutdown
 
 
+: perf:
+perf list       //get all counters
+perf record -a -- git gc        //get counter
+perf report --sort comm,dso,symbol | head -10   //format repeat
+perf trace      //strace inspired tool
+perf kmem -f record     //mem analytics
+perf top        // realtime analytics
+perf top -e cycles:pp   //
+perf script     //exec script tools
 
 
 
