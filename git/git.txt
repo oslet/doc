@@ -1,0 +1,5 @@
+git help --all   //show all commands
+git --version   //show ver
+git config user.name "eutler lee"
+git config user.email "eletmc@gmail.com"
+git show-branch --more=10   //show one-line summary
