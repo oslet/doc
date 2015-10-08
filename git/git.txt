@@ -1,5 +1,32 @@
 git help --all   //show all commands
 git --version   //show ver
+
 git config user.name "eutler lee"
 git config user.email "eletmc@gmail.com"
+
 git show-branch --more=10   //show one-line summary
+git config --global alias.show-graph 'log --graph --abbrev-commit --pretty=oneline'
+
+git ls-files -s   //查看对象模型下暂存文件的SHA1
+git ls-files --stage  //查看对象模型下暂存文件的SHA1
+
+git hash-object index.html   //直接计算索引中这个文件的SHA1
+
+git write-tree
+git cat-file -p 68aba6
+
+git rm:
+echo "random" > oops
+git rm oops
+git add oops
+git status
+git ls-files --stage
+git rm --cached oops
+git ls-files --stage
+git rm index.html   //从已提交的版本库中删除
+git checkout HEAD -- index.html   //恢复以上的删除
+
+git mv:
+mv stuff newstuff && git rm stuff && git add newstuff
+git mv stuff newstuff
+git log index.html && git log --follow index.html
