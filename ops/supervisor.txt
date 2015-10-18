@@ -1,0 +1,23 @@
+supervisor≈‰÷√Œƒº˛
+
+[program:fm]
+command = uwsgi
+ -s 127.0.0.1:8080
+ -w application
+ --buffer-size 32768
+ --harakiri 60
+ --reaper
+ --processes 1
+ --master
+ --logto /tmp/fm.uwsgi.log
+ --chmod-socket=666
+ --socket-timeout 5
+ --max-requests 1000
+directory=/data/www/WebSiteFile
+user=root
+stopsignal=QUIT
+autostart=true
+autorestart=true
+stdout_logfile=/tmp/fm.supervisord.log
+redirect_stderr=true
+exitcodes=0,1,2
