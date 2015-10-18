@@ -47,7 +47,7 @@ opcontrol --init &&  opcontrol --reset &&  opcontrol --start
 opcontrol --shutdown
 
 
-: perf:
+:: perf:
 perf list       //get all counters
 perf record -a -- git gc        //get counter
 perf report --sort comm,dso,symbol | head -10   //format repeat
@@ -57,5 +57,18 @@ perf top        // realtime analytics
 perf top -e cycles:pp   //
 perf script     //exec script tools
 
+
+:: ss:
+Send-Q 对方没有收到的数据或者说没有Ack的，还是本地缓冲区。
+Recv -Q 数据已经在本地接收缓冲，但是还没有recv()
+ss -n 不解析服务名
+ss -l 显示本地打开的所有监听端口
+ss -s 摘要
+ss -t 显示tcp连接
+ss -u 显示udp连接
+ss -p 显示使用socket的pid
+ss -o 显示定时器信息
+ss -o state established '( dport = :smtp or sport = :smtp )'   显示所有已建立的SMTP连接
+ss -o state established '( dport = :http or sport = :http )'  显示所有已建立的HTTP连接
 
 

@@ -1,0 +1,29 @@
+Running a Single Machine Cluster
+./bin/etcd -data-dir machine0 -name machine0
+
+Getting the etcd version
+curl -L http://127.0.0.1:4001/version
+
+Setting the value of a key
+curl -L http://127.0.0.1:4001/v2/keys/message -XPUT -d value="Hello world"
+
+Get the value of a key
+curl -L http://127.0.0.1:4001/v2/keys/message
+
+Changing the value of a key
+curl -L http://127.0.0.1:4001/v2/keys/message -XPUT -d value="Hello etcd"
+
+Deleting a key
+curl -L http://127.0.0.1:4001/v2/keys/message -XDELETE
+
+Using key TTL
+curl -L http://127.0.0.1:4001/v2/keys/foo -XPUT -d value=bar -d ttl=5
+
+The TTL could be unset to avoid expiration through update operation
+curl -L http://127.0.0.1:4001/v2/keys/foo -XPUT -d value=bar -d ttl= -d prevExist=true
+
+Waiting for a change
+curl -L http://127.0.0.1:4001/v2/keys/foo?wait=true
+curl -L http://127.0.0.1:4001/v2/keys/foo -XPUT -d value=bar
+curl -L 'http://127.0.0.1:4001/v2/keys/foo?wait=true&waitIndex=7'
+
