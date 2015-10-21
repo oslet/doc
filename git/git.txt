@@ -30,3 +30,13 @@ git mv:
 mv stuff newstuff && git rm stuff && git add newstuff
 git mv stuff newstuff
 git log index.html && git log --follow index.html
+
+git log:
+git log -1 --pretty=oneline HEAD   //单行显示最近提交记录
+git log --pretty=short --abbrev-commit master~5..master~3   //显示master~5与~3所有提交
+git log -1 -p 5bb47   //输出引进的补丁或变更
+git log --pretty=short --stat master~5..master~3   //显示提交更改文件数及文件有多少行改动
+
+git show:
+git show HEAD~2   //查看倒数的三个提交
+git show origin/master:Makefile   //查看origin/master中Makefile的 blob
