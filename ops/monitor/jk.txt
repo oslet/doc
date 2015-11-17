@@ -1,0 +1,45 @@
+sigar::
+
+Sigar可以收集的信息包括：
+
+1) CPU信息，包括基本信息（vendor、model、mhz、cacheSize）和统计信息（user、sys、idle、nice、wait）
+
+2)文件系统信息，包括Filesystem、Size、Used、Avail、Use%、Type
+
+3)事件信息，类似Service Control Manager
+
+4)内存信息，物理内存和交换内存的总数、使用数、剩余数；RAM的大小
+
+5)网络信息，包括网络接口信息和网络路由信息
+
+6)进程信息，包括每个进程的内存、CPU占用数、状态、参数、句柄
+
+7)IO信息，包括IO的状态，读写大小等
+
+8)服务状态信息
+
+9)系统信息，包括操作系统版本，系统资源限制情况，系统运行时间以及负载，JAVA的版本信息等
+
+
+中间件性能指标监控:
+JVM
+
+堆内存、永久代内存、老年代内存、线程CPU时间、线程堆栈、Yong GC、Full GC
+
+MySQL
+
+慢查询、QPS、TPS、连接数、空间大小、表锁、行锁…
+
+Redis
+
+QPS、命中率、连接数、条目数、占用内存…
+
+Memcached
+
+QPS、命中率、占用内存、条目数、连接数…
+
+Nginx
+
+每秒请求数、连接数、keepalive连接数、持久连接利用率…
+
+
