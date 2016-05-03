@@ -1,0 +1,148 @@
+#!/bin/bash
+# elk stack
+# require jdk1.8+
+
+mkdir -p /apps/elk
+useradd elk
+su elk 
+wget -c -t 0 https://download.elastic.co/elasticsearch/release/org/elasticsearch/distribution/zip/elasticsearch/2.3.2/elasticsearch-2.3.2.zip
+unzip elasticsearch-2.3.2.zip
+cd elasticsearch-2.3.2
+echo "network.host: $ip" >> config/elasticsearch.yml
+echo "http.max_content_length: 100mb" >> config/elasticsearch.yml
+echo "cluster_name: "elk_cluster"" >> config/elasticsearch.yml
+echo "node.name: "elast_node0"" >> config/elasticsearch.yml
+echo "node.master: true" >> config/elasticsearch.yml
+echo "node.data: true" >> config/elasticsearch.yml
+echo "bootstrap.mlockall: true" >> config/elasticsearch.yml
+echo "ES_MIN_MEM: 1g" >> config/elasticsearch.yml
+echo "ES_MAX_MEM: 1g" >> config/elasticsearch.yml
+
+bin/elasticsearch -d
+bin/plugin install mobz/elasticsearch-head
+cd ..
+cp -a elasticsearch-2.3.2 elasticsearch-2.3.2.node1
+## commit network.host, change node.name to elast_node1
+bin/elasticsearch -d
+cd ..
+
+
+wget -c -t 0 https://download.elastic.co/kibana/kibana/kibana-4.5.0-linux-x64.tar.gz
+tar zxvf kibana-4.5.0-linux-x64.tar.gz
+bin/kibana -e http://localhost:9200
+cd ..
+
+curl -O https://www.elastic.co/guide/en/kibana/3.0/snippets/shakespeare.json
+wget https://raw.githubusercontent.com/bly2k/files/master/accounts.zip
+wget https://download.elastic.co/demos/kibana/gettingstarted/logs.jsonl.gz
+unzip accounts.zip
+unzip logs.jsonl.gz
+
+### import samples data
+curl -XPUT http://localhost:9200/shakespeare -d '
+{
+ "mappings" : {
+  "_default_" : {
+   "properties" : {
+    "speaker" : {"type": "string", "index" : "not_analyzed" },
+    "play_name" : {"type": "string", "index" : "not_analyzed" },
+    "line_id" : { "type" : "integer" },
+    "speech_number" : { "type" : "integer" }
+   }
+  }
+ }
+}
+';
+
+curl -XPUT http://localhost:9200/logstash-2015.05.18 -d '
+{
+  "mappings": {
+    "log": {
+      "properties": {
+        "geo": {
+          "properties": {
+            "coordinates": {
+              "type": "geo_point"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+';
+
+curl -XPUT http://localhost:9200/logstash-2015.05.19 -d '
+{
+  "mappings": {
+    "log": {
+      "properties": {
+        "geo": {
+          "properties": {
+            "coordinates": {
+              "type": "geo_point"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+';
+
+curl -XPUT http://localhost:9200/logstash-2015.05.20 -d '
+{
+  "mappings": {
+    "log": {
+      "properties": {
+        "geo": {
+          "properties": {
+            "coordinates": {
+              "type": "geo_point"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+';
+
+curl -XPOST 'localhost:9200/bank/account/_bulk?pretty' --data-binary @accounts.json
+curl -XPOST 'localhost:9200/shakespeare/_bulk?pretty' --data-binary @shakespeare.json
+curl -XPOST 'localhost:9200/_bulk?pretty' --data-binary @logs.jsonl
+
+### verify
+curl 'localhost:9200/_cat/indices?v'
+
+### ----------------------------------------------------------------------------------
+
+### elasticsearch
+# cluster health
+# curl 'localhost:9200/_cat/health?v'
+
+# nodes 
+curl 'localhost:9200/_cat/nodes?v'
+
+# list all indices
+curl 'localhost:9200/_cat/indices?v'
+
+# create an index
+curl -XPUT 'localhost:9200/customer?pretty'
+
+# index and query a document
+curl -XPUT 'localhost:9200/customer/external/1?pretty' -d '
+{
+  "name": "John Doe"
+}'
+
+# delete an index
+curl -XDELETE 'localhost:9200/customer?pretty'
+curl 'localhost:9200/_cat/indices?v'
+
+### authorized
+cd /apps/elk/elasticsearch-2.3.2
+bin/plugin install license
+bin/plugin install shield
+bin/shield/esusers useradd es_admin -r admin
+curl -u es_admin -XGET 'http://localhost:9200/'
