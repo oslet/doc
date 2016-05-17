@@ -1,0 +1,140 @@
+### openssl ca server ###
+env: centos 6.x
+
+/etc/pki/CA/
+            newcerts    存放CA签署（颁发）过的数字证书（证书备份目录）
+            private     用于存放CA的私钥
+            crl         吊销的证书
+
+/etc/pki/tls/
+             cert.pem    软链接到certs/ca-bundle.crt
+             certs/      该服务器上的证书存放目录，可以房子自己的证书和内置证书
+                   ca-bundle.crt    内置信任的证书
+             private    证书密钥存放目录
+             openssl.cnf    openssl的CA主配置文件
+             
+1.1颁发证书
+vi /etc/pki/tls/openssl.cnf
+...
+[ CA_default ]
+
+dir             = /etc/pki/CA           # Where everything is kept
+certs           = $dir/certs            # Where the issued certs are kept
+crl_dir         = $dir/crl              # Where the issued crl are kept
+database        = $dir/index.txt        # database index file.
+#unique_subject = no                    # Set to 'no' to allow creation of
+                                        # several ctificates with same subject.
+new_certs_dir   = $dir/newcerts         # default place for new certs.
+
+certificate     = $dir/cacert.pem       # The CA certificate
+serial          = $dir/serial           # The current serial number
+crlnumber       = $dir/crlnumber        # the current crl number
+                                        # must be commented out to leave a V1 CRL
+crl             = $dir/crl.pem          # The current CRL
+private_key     = $dir/private/cakey.pem # The private key
+RANDFILE        = $dir/private/.rand    # private random number file
+...
+default_days    = 3650                  # how long to certify for
+...
+# For the CA policy
+[ policy_match ]
+countryName             = match
+stateOrProvinceName     = optional
+localityName            = optional
+organizationName        = optional
+organizationalUnitName  = optional
+commonName              = supplied
+emailAddress            = optional
+...
+[ req_distinguished_name ]
+countryName                     = Country Name (2 letter code)
+countryName_default             = CN
+countryName_min                 = 2
+countryName_max                 = 2
+
+stateOrProvinceName             = State or Province Name (full name)
+stateOrProvinceName_default     = GD
+...
+[ req_distinguished_name ] 部分主要是颁证时一些默认的值，可以不动
+
+在CA目录下创建两个初始文件：
+# touch index.txt serial
+# echo 01 > serial
+
+1.2 生成根密钥
+# cd /etc/pki/CA/
+# openssl genrsa -aes256 -out private/cakey.pem 2048
+为了安全起见，修改cakey.pem私钥文件权限为600或400，也可以使用子shell生成( umask 077; openssl genrsa -out private/cakey.pem 2048 )，下面不再重复。
+
+1.3 生成根证书
+# openssl req -new -x509 -days 3650 -key private/cakey.pem -out cacert.pem
+
+1.4 为我们的nginx web服务器生成ssl密钥
+# cd /etc/nginx/ssl
+# openssl genrsa -aes256 -out nginx.key 2048
+
+1.5 为nginx生成证书签署请求
+# openssl req -new -x509 -days 3650 -key nginx.key -out nginx.csr
+
+1.6 私有CA根据请求来签署证书
+# openssl ca -in nginx.csr -out nginx.crt
+另外在极少数情况下，上面的命令生成的证书不能识别，试试下面的命令：
+# openssl x509 -req -in server.csr -CA /etc/pki/CA/cacert.pem -CAkey /etc/pki/CA/private/cakey.pem -CAcreateserial -out server.crt
+
+### openssl command ###
+General OpenSSL Commands
+
+These commands allow you to generate CSRs, Certificates, Private Keys and do other miscellaneous tasks.
+
+Generate a new private key and Certificate Signing Request
+openssl req -out CSR.csr -new -newkey rsa:2048 -nodes -keyout privateKey.key
+Generate a self-signed certificate (see How to Create and Install an Apache Self Signed Certificate for more info)
+openssl req -x509 -sha256 -nodes -days 365 -newkey rsa:2048 -keyout privateKey.key -out certificate.crt
+Generate a certificate signing request (CSR) for an existing private key
+openssl req -out CSR.csr -key privateKey.key -new
+Generate a certificate signing request based on an existing certificate
+openssl x509 -x509toreq -in certificate.crt -out CSR.csr -signkey privateKey.key
+Remove a passphrase from a private key
+openssl rsa -in privateKey.pem -out newPrivateKey.pem
+Checking Using OpenSSL
+
+If you need to check the information within a Certificate, CSR or Private Key, use these commands. You can also check CSRs and check certificates using our online tools.
+
+Check a Certificate Signing Request (CSR)
+openssl req -text -noout -verify -in CSR.csr
+Check a private key
+openssl rsa -in privateKey.key -check
+Check a certificate
+openssl x509 -in certificate.crt -text -noout
+Check a PKCS#12 file (.pfx or .p12)
+openssl pkcs12 -info -in keyStore.p12
+Debugging Using OpenSSL
+
+If you are receiving an error that the private doesn't match the certificate or that a certificate that you installed to a site is not trusted, try one of these commands. If you are trying to verify that an SSL certificate is installed correctly, be sure to check out the SSL Checker.
+
+Check an MD5 hash of the public key to ensure that it matches with what is in a CSR or private key
+openssl x509 -noout -modulus -in certificate.crt | openssl md5
+openssl rsa -noout -modulus -in privateKey.key | openssl md5
+openssl req -noout -modulus -in CSR.csr | openssl md5
+Check an SSL connection. All the certificates (including Intermediates) should be displayed
+openssl s_client -connect www.paypal.com:443
+Converting Using OpenSSL
+
+These commands allow you to convert certificates and keys to different formats to make them compatible with specific types of servers or software. For example, you can convert a normal PEM file that would work with Apache to a PFX (PKCS#12) file and use it with Tomcat or IIS. Use our SSL Converter to convert certificates without messing with OpenSSL.
+
+Convert a DER file (.crt .cer .der) to PEM
+openssl x509 -inform der -in certificate.cer -out certificate.pem
+Convert a PEM file to DER
+openssl x509 -outform der -in certificate.pem -out certificate.der
+Convert a PKCS#12 file (.pfx .p12) containing a private key and certificates to PEM
+openssl pkcs12 -in keyStore.pfx -out keyStore.pem -nodes
+You can add -nocerts to only output the private key or add -nokeys to only output the certificates.
+
+Convert a PEM certificate file and a private key to PKCS#12 (.pfx .p12)
+openssl pkcs12 -export -out certificate.pfx -inkey privateKey.key -in certificate.crt -certfile CACert.crt
+
+Convert a pem to crt
+openssl x509 -outform der -in your-cert.pem -out your-cert.crt
+
+revoke certfile
+openssl ca -keyfile ca.key -cert ca.crt -revoke client.pem 

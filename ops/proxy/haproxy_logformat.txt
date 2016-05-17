@@ -1,0 +1,86 @@
+### 添加haproxy日志 
+- 1. 配置文件global模块添加日志开启(默认打印全部) 
+
+``` 
+log 127.0.0.1:514   local0 
+``` 
+#日志级别 emerg  alert  crit   err    warning notice info  debug 
+-  1.debug –有调式信息的，日志信息最多 
+-  2.info –一般信息的日志，最常用 
+-  3.notice –最具有重要性的普通条件的信息 
+-  4.warning –警告级别 
+-  5.err –错误级别，阻止某个功能或者模块不能正常工作的信息 
+-  6.crit –严重级别，阻止整个系统或者整个软件不能正常工作的信息 
+-  7.alert –需要立刻修改的信息 
+-  8.emerg –内核崩溃等严重信息 
+-  9.none –什么都不记录 
+#### 从上到下，级别从低到高，记录的信息越来越少 
+- 2.配置文件frontend模块添加模式 
+
+```shell 
+log global 
+log 127.0.0.1:514   local0 
+option httplog 
+#option  dontlognull  #开启不记录健康检查日志 
+``` 
+- 3.修改/etc/rsyslog.conf 
+
+```shell 
+# haproxy's log set 
+local0.*          /var/log/haproxy.log 
+``` 
+- 4.修改/etc/sysconfig/rsyslog 
+
+``` 
+SYSLOGD_OPTIONS="-c5" 
+``` 
+- 5.重启 rsyslog ；reload haproxy 
+   * sudo service rsyslog restart  * 
+   * sudo service haproxy reload  * 
+
+haproxy的日志格式 
+
+### * the default HTTP format is defined this way : * 
+-    log-format %ci:%cp\ [%t]\ %ft\ %b/%s\ %Tq/%Tw/%Tc/%Tr/%Tt\ %ST\ %B\ %CC\ %CS\ %tsc\ %ac/%fc/%bc/%sc/%rc\ %sq/%bq\ %hr\ %hs\ %{+Q}r 
+
+### * the default CLF format is defined this way : * 
+
+-    log-format %{+Q}o\ %{-Q}ci\ -\ -\ [%T]\ %r\ %ST\ %B\ \"\"\ \"\"\ %cp\ %ms\ %ft\ %b\ %s\ \%Tq\ %Tw\ %Tc\ %Tr\ %Tt\ %tsc\ %ac\ %fc\ %bc\ %sc\ %rc\ %sq\ %bq\ %CC\ %CS\ \%hrl\ %hsl 
+
+### * the default TCP format is defined this way : * 
+
+-    log-format %ci:%cp\ [%t]\ %ft\ %b/%s\ %Tw/%Tc/%Tt\ %B\ %ts\ %ac/%fc/%bc/%sc/%rc\ %sq/%bq 
+
+### 日志格式详细说明 
+
+```shell 
+%ci    #客户端的IP 
+%cp    #客户端的端口 
+[%t]    #带[]的当前时间 
+%ft    #前端代理模式名字 
+%b    #后端名字 
+%s    #server 名 
+%Tq H    #客户机请求(HTTP)模式的总时间。这是时间运行时刻客户端之间的连接和接受目前代理收到最后一个HTTP头。“1”表示的值的头(空行)从未见过，发生这种情况时客户端关闭过早或超时 
+%Tw    #花在排队等待连接槽的总时间。它占到后端队列、队列以及服务器和依赖队列大小和所需的时间服务器来完成之前请求。值“1”意味着请求之前被杀队列,这通常会发生什么与无效或拒绝请求。 
+%Tc    #建立TCP连接到服务器的总时间。这是时间间隔发送连接请求的代理,和现在承认了服务器,或TCP SYN包和之间匹配的SYN/ACK包。“1”意味着没有建立连接。 
+%Tr H    #服务器响应时间(HTTP)模式。值“1”在这里意味着最后一个响应头(空行)是从来没有见过,很可能是因为服务器超时前的服务器处理请求 
+%Tt    #之间总会话持续时间,目前代理接受了它和两端被关闭。Tt相当于http（Tq + Tw + Tc + Tr）总时间tcp（Tw+Tc） 
+%ST      #status code 
+%B    #从服务器到客户端访问请求大小 
+%CC H    #request的cookie 
+%CS H    #响应的cookie 
+%tsc H    #访问结束时cookie的状态 
+%ac    #是指HA在会话记录过程中进程并发连接数 
+%fc    #前端并发连接 
+%bc    #后端并发连接 
+%sc    #服务器并发连接数 
+%rc    #尝试次数 
+%sq    #服务器请求队列 
+%bq    #后端的请求队列 
+%hr    #captured_request_headers default style，使用默认的请求格式 
+%hs    #captured_response_headers default style 使用默认的响应格式 
+%r  H    #http_request 
+``` 
+### HTTP/TCP采用统一日志格式 
+
+-     log-format %ci:%cp\ %ft\ %b/%s\ %Tw/%Tc/%Tt\ %ST\ %B\ %fc/%sc%rc\ %sq/%bq
