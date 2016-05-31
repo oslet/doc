@@ -1,0 +1,52 @@
+mongodb 集群搭建
+
+一.配置与启动
+
+配置服务器(10.100.14.242:10000)
+./bin/mongod --fork --dbpath data/config/ --logpath log/config.log –port 10000
+
+路由服务器(10.100.14.242:20000)
+./bin/mongos --port 20000 --configdb 192.168.32.13:10000 --logpath log/mongos.log  --fork
+
+启动分片1(10.100.14.242:27019)
+./bin/mongod --dbpath data/shard3/ --logpath log/shard3.log  --fork --port 27019
+
+启动分片2(10.100.14.242:27020)
+./bin/mongod --dbpath data/shard4/ --logpath log/shard4.log  --fork --port 27020
+
+启动分片3(10.100.14.243:27017)
+./bin/mongod --dbpath data/shard1/ --logpath log/shard1.log  --fork --port 27017
+
+启动分片4(10.100.14.243:27018)
+./bin/mongod --dbpath data/shard2/ --logpath log/shard2.log  --fork --port 27018
+
+二. 添加分片
+./bin/mongo --port 20000
+mongos>use admin
+mongos>db.runCommand({addshard:"10.100.14.242:27019",allowLocal:true})
+
+添加分片3(10.100.14.243:27017)
+mongos>db.runCommand({addshard:"10.100.14.243:27017"})
+
+其他分片类似方法添加
+
+三. 删除分片
+mongos> use admin
+mongos> db.runCommand({"removeshard":"10.100.14.242:27020"})
+
+注意：如果删除的片是数据库的大本营(基片)，必须手动移动或删除数据库，用moveprimary命令
+monogs>use config
+mongos>db.databases.find()
+mongos>use admin
+mongos>db.runCommand({"moveprimary":"test3","to":"10.100.14.242:27019"})
+这时再查看config.databases会发现test3的大本营变成了shard0000
+这时再执行removeshard命令则能成功移除分片了
+mongos>db.runCommand({"removeshard":"10.100.14.242:27020"})
+
+四. 管理分片
+./bin/mongo --port 20000
+use config
+db.shards.find()
+mongos> use config
+mongos> db.shards.find()
+
