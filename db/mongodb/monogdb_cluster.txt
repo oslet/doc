@@ -50,3 +50,15 @@ db.shards.find()
 mongos> use config
 mongos> db.shards.find()
 
+五. 开启分片
+集群建好之后，默认不会开启分片处理.需要在数据库或集合的粒度上都开启分片.
+./bin/mongo --port 20000
+mongos>use admin
+mongos>db.runCommand({"enablesharding":"test"})
+
+开启user集合分片功能:
+mongos>db.runCommand({"shardcollection":"test.user","key":{"_id":1}})
+
+六: 分片查看
+./bin/mongo --port 20000
+sh.status()
