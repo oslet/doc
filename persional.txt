@@ -72,3 +72,6 @@ ss -o state established '( dport = :smtp or sport = :smtp )'   显示所有已�
 ss -o state established '( dport = :http or sport = :http )'  显示所有已建立的HTTP连接
 
 
+:: awk:
+awk -F: '$NF!~/^$/{SHELL[$NF]++}END{for(A in SHELL) print A,SHELL[A]}' /etc/passwd   统计用户shell个数
+netstat -ant | awk '$1~/tcp/{S[$NF]++}END{for (A in S) print A,S[A]}'   统计网络连接状态个数

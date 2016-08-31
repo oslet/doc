@@ -1,0 +1,25 @@
+use master
+go
+
+declare @login_name varchar(100),@login_pwd varchar(100)
+set @login_name='read_only'
+set @login_pwd='read_only_passwd'
+
+declare @sql varchar(max),@sql_login varchar(max)
+set @sql_login='CREATE LOGIN '+@login_name+' WITH PASSWORD = '''+@login_pwd+''',CHECK_POLICY=off'
+--print @sql_login
+exec(@sql_login)
+
+set @sql='
+exec sp_msforeachdb ''
+use [?]
+if db_name() not in(''''master'''',''''model'''',''''msdb'''',''''distribution'''',''''tempdb'''')
+begin
+if exists(select * from sys.sysusers where name='''''+@login_name+''''')
+drop user '+@login_name+'
+CREATE USER '+@login_name+' FOR LOGIN '+@login_name+'; 
+exec sp_addrolemember ''''db_datareader'''','''''+@login_name+'''''
+end
+''
+'
+exec(@sql)

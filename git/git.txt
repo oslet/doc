@@ -40,3 +40,45 @@ git log --pretty=short --stat master~5..master~3   //显示提交更改文件数
 git show:
 git show HEAD~2   //查看倒数的三个提交
 git show origin/master:Makefile   //查看origin/master中Makefile的 blob
+
+git 合并两个仓库:
+1.有两git仓库: repo1,repo2
+2.将repo1中的文件移入repo2
+3.repo1的历史日志要保留
+
+mkdir repo{1,2}
+cd repo1
+git init
+echo "repo1.txt" > repo1.txt
+git add repo1.txt
+git commit -a -m "init repo1"
+
+cd ../repo2
+git init
+echo "repo2.txt" > repo2.txt
+git add repo2.txt
+git commit -a -m "init repo2"
+
+现在合并，
+1.将repo1作为远程仓库，添加到repo2中，并设置别名为other.
+git remote add other ../repo1
+
+2.从repo1仓库中抓取数据到本仓库
+git fetch other
+
+3.将repo1仓库中抓取的 master分支作为新分支 checkout 到本地,新分支为repo1
+git checkout -b repo1 other/master
+
+4.切换回repo2的 master分支
+git checkout master
+
+5.新repo1合并到 master分支
+git merge repo1
+
+以上则完成了合并,若有修改同一个文件，对于文本文件只需手动处理，对于二进制文件，需如下操作
+git checkout --theirs your_binary_files   //保留需要合并进来的分支的修改
+//git checkout --ours your_binary_files   //保留自已的修改
+git add your_binary_files
+git commit
+
+ps: 以上操作简化为 伪造远程的repo1仓库作为repo2的一个分支,然后合并到master.

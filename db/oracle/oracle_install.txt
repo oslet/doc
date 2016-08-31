@@ -1,0 +1,399 @@
+CentOS 6.x install oracle 11g
+
+1. Checking the Hardware Requirements
+Memory:
+minimum: 1GB
+Recommended: 2GB or more
+Swap Space: 1GB or 2GB-16GB
+
+Disk:
+/tmp: 1GB or more
+
+2. Checking the Software Requirements
+
+binutils-2.20.51.0.2-5.11.el6
+compat-libcap1-1.10-1
+compat-libstdc++-33-3.2.3-69.el6
+compat-libstdc++-33-3.2.3-69.el6.i686
+gcc-4.4.4-13.el6
+gcc-c++-4.4.4-13.el6
+glibc-2.12-1.7.el6 (i686)
+glibc-2.12-1.7.el6
+glibc-devel-2.12-1.7.el6
+glibc-devel-2.12-1.7.el6.i686
+ksh
+libgcc-4.4.4-13.el6 (i686)
+libgcc-4.4.4-13.el6
+libstdc++-4.4.4-13.el6
+libstdc++-4.4.4-13.el6.i686
+libstdc++-devel-4.4.4-13.el6
+libstdc++-devel-4.4.4-13.el6.i686
+libaio-0.3.107-10.el6
+libaio-0.3.107-10.el6.i686
+libaio-devel-0.3.107-10.el6
+libaio-devel-0.3.107-10.el6.i686
+make-3.81-19.el6
+sysstat-9.0.4-11.el6
+
+yum -y install binutils compat-libcap1 compat-libstdc++.i686 compat-libstdc++.x86_64 elfutils-libelf elfutils-libelf-devel gcc gcc-c++ glibc.i686 glibc.x86_64 glibc-devel.i686 glibc-devel.x86_64 ksh libgcc.i686 libgcc.x86_64 libstdc++.i686 libstdc++.x86_64 libstdc++-devel.i686 libstdc++-devel.x86_64 libaio.i686 libaio.x86_64 libaio-devel.i686 libaio-devel.x86_64 libXext libXtst libX11 libXau libxcb libXi make sysstat unixODBC-devel.i686 unixODBC-devel.x86_64 unixODBC.i686 unixODBC.x86_64 compat-libstdc++-33.i686 compat-libstdc++-33.x86_64
+
+yum -y install binutils.x86_64 \
+compat-libcap1.x86_64 \
+compat-libstdc++-33.x86_64 \
+compat-libstdc++-33.i686 \
+gcc.x86_64 gcc-c++.x86_64 \
+glibc.i686 glibc.x86_64 \
+glibc-devel.x86_64 glibc-devel.i686 \
+ksh.x86_64 libgcc.i686 libgcc.x86_64 \
+libstdc++.x86_64 libstdc++.i686 \
+libstdc++-devel.x86_64 \
+libstdc++-devel.i686 libaio.x86_64 \
+libaio.i686 libaio-devel.x86_64 \
+libaio-devel.i686 make sysstat.x86_64 \
+unixODBC.i686 unixODBC.x86_64 \
+unixODBC-devel.i686 unixODBC-devel.x86_64
+
+wget http://mirror.centos.org/centos/5/os/x86_64/CentOS/pdksh-5.2.14-37.el5_8.1.x86_64.rpm
+rpm -ivh pdksh-5.2.14-37.el5_8.1.x86_64.rpm
+
+3. Creating Required Operating System Groups and Users
+groupadd oinstall
+groupadd dba
+
+usermod -g oinstall -G dba oracle
+useradd -g oinstall -G dba oracle
+
+passwd oracle
+
+4.Configuring Kernel Parameters and Resource Limits
+cat >> /etc/sysctl.conf << EOF
+fs.aio-max-nr = 1048576
+fs.file-max = 6815744
+kernel.shmall = 2097152
+kernel.shmmax = 536870912
+kernel.shmmni = 4096
+kernel.sem = 250 32000 100 128
+net.ipv4.ip_local_port_range = 9000 65500
+net.core.rmem_default = 262144
+net.core.rmem_max = 4194304
+net.core.wmem_default = 262144
+net.core.wmem_max = 1048576
+EOF
+
+sysclt -p
+
+open file descriptors       nofile      at least 1024       at least 65536
+number of processes         nproc       at least 2047       at least 16384
+size of the stack segment   stack       at least 10240KB    10240KB<>32768KB
+
+
+5.Creating Required Directories
+mkdir -p /mount_point/app
+chown -R oracle:oinstall /mount_point/app
+chmod -R 755 /mount_point/app
+
+6.Configuring the oracle User's Environment
+remote install: set the DISPLAY variable:
+export DISPLAY=local_host:0.0
+
+set the ORACLE_BASE and ORACLE_SID
+ORACLE_BASE=/u01/app/oracle
+ORACLE_SID=orcl
+export ORACLE_BASE ORACLE_SID
+
+
+6.Mounting the Product Disc
+eject /mnt/dvd
+mount -t iso9660 /dev/dvd /mnt/dvd
+
+
+7. make install rsp file
+db_install.rsp: 安装应答
+dbca.rsp: 创建数据库应答
+netca.rsp: 建立监听，本地服务名等网络设置的应答
+如下一份是db_install.rsp，依情况修改
+oracle.install.responseFileVersion=/oracle/install/rspfmt_dbinstall_response_schema_v11_2_0
+oracle.install.option=INSTALL_DB_SWONLY
+ORACLE_HOSTNAME=oracledb
+UNIX_GROUP_NAME=oinstall
+INVENTORY_LOCATION=/data/oracle_oraInventory
+SELECTED_LANGUAGES=en,zh_CN
+ORACLE_HOME=/data/oracle/product/11.2.0/db_1
+ORACLE_BASE=/data/oracle
+oracle.install.db.InstallEdition=EE
+oracle.install.db.isCustomInstall=false
+oracle.install.db.customComponents=oracle.server:11.2.0.1.0,oracle.sysman.ccr:10.2.7.0.0,oracle.xdk:11.2.0.1.0,oracle.rdbms.oci:11.2.0.1.0,oracle.network:11.2.0.1.0,oracle.network.listener:11.2.0.1.0,oracle.rdbms:11.2.0.1.0,oracle.options:11.2.0.1.0,oracle.rdbms.partitioning:11.2.0.1.0,oracle.oraolap:11.2.0.1.0,oracle.rdbms.dm:11.2.0.1.0,oracle.rdbms.dv:11.2.0.1.0,orcle.rdbms.lbac:11.2.0.1.0,oracle.rdbms.rat:11.2.0.1.0
+oracle.install.db.DBA_GROUP=dba
+oracle.install.db.OPER_GROUP=oinstall
+oracle.install.db.CLUSTER_NODES=
+oracle.install.db.config.starterdb.type=GENERAL_PURPOSE
+oracle.install.db.config.starterdb.globalDBName=orcl
+oracle.install.db.config.starterdb.SID=orcl
+oracle.install.db.config.starterdb.characterSet=AL32UTF8
+oracle.install.db.config.starterdb.memoryOption=true
+oracle.install.db.config.starterdb.memoryLimit=2048
+oracle.install.db.config.starterdb.installExampleSchemas=false
+oracle.install.db.config.starterdb.enableSecuritySettings=true
+oracle.install.db.config.starterdb.password.ALL=orcl
+oracle.install.db.config.starterdb.password.SYS=
+oracle.install.db.config.starterdb.password.SYSTEM=
+oracle.install.db.config.starterdb.password.SYSMAN=
+oracle.install.db.config.starterdb.password.DBSNMP=
+oracle.install.db.config.starterdb.control=DB_CONTROL
+oracle.install.db.config.starterdb.gridcontrol.gridControlServiceURL=
+oracle.install.db.config.starterdb.dbcontrol.enableEmailNotification=false
+oracle.install.db.config.starterdb.dbcontrol.emailAddress=
+oracle.install.db.config.starterdb.dbcontrol.SMTPServer=
+oracle.install.db.config.starterdb.automatedBackup.enable=false
+oracle.install.db.config.starterdb.automatedBackup.osuid=
+oracle.install.db.config.starterdb.automatedBackup.ospwd=
+oracle.install.db.config.starterdb.storageType=FILE_SYSTEM_STORAGE
+oracle.install.db.config.starterdb.fileSystemStorage.dataLocation=
+oracle.install.db.config.starterdb.fileSystemStorage.recoveryLocation=
+oracle.install.db.config.asm.diskGroup=
+oracle.install.db.config.asm.ASMSNMPPassword=
+MYORACLESUPPORT_USERNAME=
+MYORACLESUPPORT_PASSWORD=
+SECURITY_UPDATES_VIA_MYORACLESUPPORT=
+DECLINE_SECURITY_UPDATES=true    //一定要设为 true
+PROXY_HOST=
+PROXY_PORT=
+PROXY_USER=
+PROXY_PWD=
+
+8.Installing Oracle Database
+export DISPLAY=:0.0
+
+/mount_point/db/runInstaller -silent -responseFile /usr/local/src/database/response/db_install.rsp
+需等10分钟左右安装完成，中途可以看到安装日志
+
+
+9.配置监听
+$ORACLE_HOME/bin/netca /silent /responsefile /usr/local/src/database/response/netca.rsp
+通过 netstat -ant | grep 1521 可以看到是否执行成功.
+ 
+手动启动:
+$ORACLE_HOME/bin/lsnrctl start LISTENER
+
+10.创建数据库
+vi /usr/local/src/database/response/dbca.rsp
+GDBNAME="VMS"
+SID="VMS"
+CHARACTERSET="AL32UTF8"
+NATIONALCHARACTERSET="UTF8"
+
+$ORACLE_HOME/bin/dbca -silent -responsefile /usr/local/src/database/response/dbca.rsp
+会提示输入SYS以及SYSTEM用户密码
+
+11. 启动数据库
+sqlplus / as sysdba
+start
+startup
+
+启动过程中会有提示，默认读取initSID.ora配置文件,若没有复制一份(以init.ora为模板)
+
+启动过程中若提示 MEMORY_TARGET not supported on this system,执行如下命令重置 /dev/shm分区大小,默认是系统内存一半
+mount -o size=8G -o nr_inodes=1000000 -o noatime,nodiratime -o remount /dev/shm
+
+12.
+创建控制文件
+STARTUP NOMOUNT
+
+CREATE CONTROLFILE REUSE DATABASE "demo" NORESETLOGS NOARCHIVELOG
+
+删除数据库实例
+startup
+shutdown immediate;
+startup mount exclusive restrict;
+drop database;
+
+创建用户
+create user username identified by password
+
+创建用户的Profile文件
+create profile vms_user limit
+FAILED_LOGIN_ATTEMPTS 3 //指定锁定用户的登陆失败次数
+PASSWORD_LOCK_TIME 5   //指定用户被锁定天数
+PASSWORD_LIFE_TIME 30  //指定口令可用天数
+
+alter user vms_user profile vms_user   //修改用户的Profile
+alter user vms_user password expire   //强制用户修改口令
+alter user vms_user account lock   //加锁
+alter user vms_User account unlokc  //解锁
+
+监视用户
+select username,sid,serial#,machine from v$session
+
+删除用户会话信息
+alter system kill session 'sid, serial#'
+
+修改密码
+password username
+alter user username identified by newpassword
+
+删除用户
+drop user username
+drop user username cascade
+
+分配权限
+grant connect,dba to username
+
+create role vms;
+grant create any table,create procedure,create session,alter any table,select any table,update any table,insert any table to vms; 
+grant vms to vms_user
+
+select * from role_sys_privs   //查看用户包含的权限
+
+create role role1 identified by password   //创建带有口令的角色
+alter role role1 not identified   //去掉认证口令
+alter role role1 identified by password 
+
+set role role1   //使role1生效
+set role none   //使所有角色生效
+set role all except role1   //除role1外该用户所有其他角色生效
+select * from session_roles   //查看当前用户生效的角色
+alter user vms_user default role vms   //修改指定用户默认角色
+
+drop role role1   //删除角色
+
+回收权限
+revoke connect,resource from username
+
+
+查表空间数量
+select tablespace_name, file_id, file_name,
+round(bytes/(1024*1024),0) total_space
+from dba_data_files
+order by tablespace_name;
+
+查实例名
+select instance_name from v$instance;   //查SID
+
+select open_mode from v$database;   //查数据库状态
+
+select name from v$database;    //查数据库名称
+
+select * from v$version;   //查实例版本
+
+select userenv('language') from dual;   //查字符集编码
+
+select * from v$nls_parameters where parameter = 'NLS_CHARACTERSET';   //查服务端字符集编码
+
+
+
+--创建表空间
+
+DROP TABLESPACE FMSS INCLUDING CONTENTS AND DATAFILES;
+
+
+DROP TABLESPACE DLT INCLUDING CONTENTS AND DATAFILES;
+
+
+DROP TABLESPACE METABASE INCLUDING CONTENTS AND DATAFILES;
+
+
+DROP TABLESPACE WORK INCLUDING CONTENTS AND DATAFILES;
+
+
+DROP TABLESPACE REPORT INCLUDING CONTENTS AND DATAFILES;
+
+
+CREATE TABLESPACE FMSS DATAFILE '/opt/oracle_tablespace/FMSS.ORA' SIZE 128M AUTOEXTEND ON NEXT 128M EXTENT MANAGEMENT LOCAL SEGMENT SPACE MANAGEMENT AUTO;
+
+
+CREATE TABLESPACE DLT DATAFILE '/opt/oracle_tablespace/DLT.ORA' SIZE 128M AUTOEXTEND ON NEXT 128M EXTENT MANAGEMENT LOCAL SEGMENT SPACE MANAGEMENT AUTO;
+
+
+CREATE TABLESPACE METABASE DATAFILE '/opt/oracle_tablespace/METABASE.ORA' SIZE 128M AUTOEXTEND ON NEXT 128M EXTENT MANAGEMENT LOCAL SEGMENT SPACE MANAGEMENT AUTO;
+
+
+CREATE TABLESPACE WORK DATAFILE '/opt/oracle_tablespace/WORK.ORA' SIZE 128M AUTOEXTEND ON NEXT 128M EXTENT MANAGEMENT LOCAL SEGMENT SPACE MANAGEMENT AUTO;
+
+
+CREATE TABLESPACE REPORT DATAFILE '/opt/oracle_tablespace/REPORT.ORA' SIZE 128M AUTOEXTEND ON NEXT 128M EXTENT MANAGEMENT LOCAL SEGMENT SPACE MANAGEMENT AUTO;
+
+
+--删除用户
+DROP USER METABASE CASCADE;
+
+DROP USER WORK CASCADE;
+
+DROP USER REPORT CASCADE;
+
+DROP USER DLT CASCADE;
+
+DROP USER FMSS CASCADE;
+
+
+CREATE USER METABASE IDENTIFIED BY METABASE
+  DEFAULT TABLESPACE METABASE
+  TEMPORARY TABLESPACE TEMP;
+GRANT CREATE SESSION,CREATE TRIGGER,CREATE PROCEDURE, CREATE SEQUENCE, CREATE TABLE, CREATE VIEW, CREATE PUBLIC SYNONYM, DROP PUBLIC SYNONYM TO METABASE;
+ALTER USER METABASE QUOTA UNLIMITED ON METABASE;
+
+
+CREATE USER WORK IDENTIFIED BY WORK
+  DEFAULT TABLESPACE WORK
+  TEMPORARY TABLESPACE TEMP;
+GRANT CREATE SESSION,CREATE TRIGGER,CREATE PROCEDURE, CREATE SEQUENCE, CREATE TABLE, CREATE VIEW, CREATE PUBLIC SYNONYM, DROP PUBLIC SYNONYM TO WORK;
+ALTER USER WORK QUOTA UNLIMITED ON WORK;
+
+
+CREATE USER REPORT IDENTIFIED BY REPORT
+  DEFAULT TABLESPACE REPORT
+  TEMPORARY TABLESPACE TEMP;
+GRANT CREATE SESSION,CREATE TRIGGER,CREATE PROCEDURE, CREATE SEQUENCE, CREATE TABLE, CREATE VIEW, CREATE PUBLIC SYNONYM, DROP PUBLIC SYNONYM TO REPORT;
+ALTER USER REPORT QUOTA UNLIMITED ON REPORT;
+
+
+CREATE USER DLT IDENTIFIED BY DLT
+  DEFAULT TABLESPACE DLT
+  TEMPORARY TABLESPACE TEMP;
+GRANT CREATE SESSION,CREATE TRIGGER,CREATE PROCEDURE, CREATE SEQUENCE, CREATE TABLE, CREATE VIEW, CREATE PUBLIC SYNONYM, DROP PUBLIC SYNONYM TO DLT;
+ALTER USER DLT QUOTA UNLIMITED ON DLT;
+
+
+CREATE USER FMSS IDENTIFIED BY FMSS
+  DEFAULT TABLESPACE FMSS
+  TEMPORARY TABLESPACE TEMP;
+GRANT CREATE SESSION,CREATE TRIGGER,CREATE PROCEDURE, CREATE SEQUENCE, CREATE TABLE, CREATE VIEW, CREATE PUBLIC SYNONYM, DROP PUBLIC SYNONYM TO FMSS;
+ALTER USER FMSS QUOTA UNLIMITED ON FMSS;
+
+
+导入导出数据
+show parameter deferred_segment_creation;   //查看是否允许空表导入
+为false时允许空表导入
+alter system set deferred_segment_creation=false scope=both;
+
+--数据汞导入语句
+select * from dba_directories;
+
+drop directory dpimpdata;
+
+create directory dpimpdata as '/usr/local/src';
+
+--导入全库
+impdp system/admin@vms directory=DPIMPDATA SCHEMAS=METABASE,WORK,REPORT,DLT,FMSS dumpfile=vms_20160801.DMP  TABLE_EXISTS_ACTION=REPLACE logfile=vms_20160801.log version=11.1
+
+--导出全库(非sys与system用户的对象)
+sql> create directory backup as '/data/oracle_backup'; 
+expdp /'/ as sysdba/' directory=backup full=y dumpfile=all.dmp logfile=expdp.log parallel=2   
+
+--导出表(这里必须是同一个schema下的表)
+expdp  /'/ as sysdba/' directory=backup dumpfile=table.dmp logfile=table.log tables=dave.dave,dave.dba;
+
+--导入表
+impdp dave/dave directory=backup dumpfile=table.dmp logfile=table.log tables=dave,dba;
+
+--导出用户
+expdp  /'/ as sysdba/' directory=backup dumpfile=user.dmp logfile=user.log schemas=dave,bl;
+
+--导入用户
+impdp  /'/ as sysdba/' directory=backup dumpfile=user.dmp logfile=user.log schemas=dave,bl table_exists_action=replace;
+
+--导出表空间
+expdp  /'/ as sysdba/' directory=backup dumpfile=tbs.dmp logfile=tbs.log tablespaces=dave,bl;
+
+--导入表空间
+impdp  /'/ as sysdba/' directory=backup dumpfile=user.dmp logfile=user.log tablespaces=dave table_exists_action=replace;
+
