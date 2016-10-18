@@ -1,0 +1,27 @@
+扩容当前分区
+
+1.创建一新分区
+fdisk /dev/xvdb
+n
+l
+5
+t  8e
+w
+partprobe #重读分区表
+mkfs -t ext4 /dev/xvdb5
+partx /dev/xvdb #查看当前硬盘分区表及使用情况
+
+2.创建pv,扩容vg,lv
+pvcreate /dev/xvdb5 #创建pv
+
+vgs #查看当前已存在的 vg信息
+
+vgextend VolGroup /dev/xvdb5  #扩展vg
+
+lvs #查看已存在的lv信息
+
+lvextend -L 135.6G /dev/VolGroup/lv_root #扩展lv
+
+resize2fs /dev/VolGroup/lv_root #执行重设大小
+
+df -h #查看挂载情况

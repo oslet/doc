@@ -259,6 +259,20 @@ drop role role1   //删除角色
 回收权限
 revoke connect,resource from username
 
+用户锁定
+alter user username account lock;
+
+用户解锁
+alter user username account unlock;
+
+查看用户被锁时间
+alter session set nls_date_format='yyyy-mm-dd hh24:mi:ss';  
+select username,lock_date from dba_users where username='third';
+
+赋予用户导出全导权限
+grant EXP_FULL_DATABASE to username;
+
+
 
 查表空间数量
 select tablespace_name, file_id, file_name,

@@ -1,0 +1,20 @@
+1、安装iproute
+yum -y install iproute
+
+2、限制eth0网卡的带宽为500kbit：
+/sbin/tc qdisc add dev eth0 root tbf rate 500kbit latency 50ms burst 15kb
+
+TBF Example（限制带宽为1mbit）
+tc qdisc add dev eth0 root tbf rate 1mbit burst 10kb latency 70ms peakrate 2mbit minburst 1540
+
+3、解除eth0网卡的带宽限制：
+/sbin/tc qdisc del dev eth0 root
+
+4、列出已有的策略：
+tc -s qdisc ls dev eth0
+
+5. 配置网络延时
+tc qdisc add dev eth1 root netem delay 1000ms
+
+6. 配置网络丢包率
+tc qdisc add dev eth1 root netem loss 10%

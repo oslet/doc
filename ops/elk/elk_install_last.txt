@@ -146,3 +146,9 @@ bin/plugin install license
 bin/plugin install shield
 bin/shield/esusers useradd es_admin -r admin
 curl -u es_admin -XGET 'http://localhost:9200/'
+
+### auth search-guard
+cd /apps/elk/elasticsearch-2.4.0
+bin/plugin install -b com.floragunn/search-guard-ssl/2.4.0.16
+bin/plugin install -b com.floragunn/search-guard-2/2.4.0.7
+
