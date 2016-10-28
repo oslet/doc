@@ -1,0 +1,18 @@
+/* 自动加入基础监控模板,名称为 sa.dev.app */
+
+delimiter $$
+
+use falcon_portal $$
+
+DROP TRIGGER /*!50032 IF EXISTS */ `tri_host`$$
+
+create trigger tri_host after insert
+on host for each ROW
+BEGIN
+declare c int;
+set c = (select id from grp where grp_name='sa.dev.app') ;
+insert into grp_host(grp_id,host_id) select c,id from `host`;
+insert into grp_host set grp_id=c,host_id=NEW.id;
+end;
+$$
+delimiter;

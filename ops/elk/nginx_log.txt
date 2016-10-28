@@ -6,3 +6,71 @@
 6. 总用户代理数(不重复)
 7. 响应代码200,301,302,304,403,404,500,502,504等等
 8.
+
+ init => "@kname = ['http_x_forwarded_for','time_local','request','status','body_bytes_sent','request_body','content_length','http_referer','http_user_agent','nuid','http_cookie','remote_addr','hostname','upstream_addr','upstream_response_time','request_time']"
+
+filter {
+    ruby {
+        init => "@kname = ['remote_addr','remote_user','time_local','request','status','body_bytes_sent','http_referer','http_user_agent','http_x_forwarded_for','request_time','upstream_response_time']"
+        code => "
+            new_event = LogStash::Event.new(Hash[@kname.zip(event.get('message').split('|'))])
+            new_event.remove('@timestamp')
+            event.append(new_event)""
+        "
+    }
+    if [request] {
+        ruby {
+            init => "@kname = ['method','uri','verb']"
+            code => "
+                new_event = LogStash::Event.new(Hash[@kname.zip(event.get('request').split(' '))])
+                new_event.remove('@timestamp')
+                event.append(new_event)""
+            "
+        }
+        if [uri] {
+            ruby {
+                init => "@kname = ['url_path','url_args']"
+                code => "
+                    new_event = LogStash::Event.new(Hash[@kname.zip(event.get('uri').split('?'))])
+                    new_event.remove('@timestamp')
+                    event.append(new_event)""
+                "
+            }
+            kv {
+                prefix => "url_"
+                source => "url_args"
+                field_split => "& "
+                remove_field => [ "url_args","uri","request" ]
+            }
+        }
+    }
+    mutate {
+        convert => [
+            "body_bytes_sent" , "integer",
+            "content_length", "integer",
+            "upstream_response_time", "float",
+            "request_time", "float"
+        ]
+    }
+    date {
+        match => [ "time_local", "dd/MMM/yyyy:hh:mm:ss Z" ]
+        locale => "en"
+    }
+}
+
+index.routing.allocation.total_shares_per_node
+
+curl -XPUT 'localhost:9200/filebeat-*/_settings' -d '
+{
+    "index" : {
+        "number_of_replicas" : 1
+    }
+}'
+
+curl -XPUT 'localhost:9200/filebeat-*/_settings' -d '
+{
+    "index" : {
+        "number_of_shards" : 2
+    }
+}'
+
