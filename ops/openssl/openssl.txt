@@ -138,3 +138,11 @@ openssl x509 -outform der -in your-cert.pem -out your-cert.crt
 
 revoke certfile
 openssl ca -keyfile ca.key -cert ca.crt -revoke client.pem 
+
+
+#########################################################################################################
+合并证书与密钥
+cat server.crt server.key > server.pem
+
+转换成PFX证书
+openssl pkcs12 -export -clcerts -in server.crt -inkey server.key -out server.pfx

@@ -1,0 +1,13 @@
+1.
+backup your system
+
+2. upgrade currently installed packages
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt-get dist-upgrade
+
+3.Use Ubuntu's do-release-upgrade Tool to Perform Upgrade
+sudo apt-get install update-manager-core
+sudo do-release-upgrade
+
+

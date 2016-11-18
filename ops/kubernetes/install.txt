@@ -1,0 +1,75 @@
+(1/4). Installing kubelet and kubeadm on your hosts
+docker
+kubelet
+kubectl
+kubeadm
+
+If the machine is running Ubuntu 16.04 or HypriotOS v1.0.1, run:
+# curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+# cat <<EOF > /etc/apt/sources.list.d/kubernetes.list
+deb http://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+# apt-get update
+# # Install docker if you don't have it already.
+# apt-get install -y docker.io
+# apt-get install -y kubelet kubeadm kubectl kubernetes-cni
+
+If the machine is running CentOS 7, run:
+cat <<EOF > /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=http://yum.kubernetes.io/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://packages.cloud.google.com/yum/doc/yum-key.gpg
+       https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+EOF
+# setenforce 0
+# yum install -y docker kubelet kubeadm kubectl kubernetes-cni
+# systemctl enable docker && systemctl start docker
+# systemctl enable kubelet && systemctl start kubelet
+
+(2/4) Initializing your master
+kubeadm init
+
+kubectl taint nodes --all dedicated-
+
+(3/4) Installing a pod network
+kubectl apply -f <add-on.yaml>
+
+kubectl get pods --all-namespaces
+
+(4/4) Joining your nodes
+kubeadm join --token <token> <master-ip>
+
+kubectl get nodes
+
+(Optional) Controlling your cluster from machines other than the master
+scp root@<master ip>:/etc/kubernetes/admin.conf .
+kubectl --kubeconfig ./admin.conf get nodes
+
+(Optional) Connecting to the API Server
+scp root@<master ip>:/etc/kubernetes/admin.conf .
+kubectl --kubeconfig ./admin.conf proxy
+You can now access the API Server locally at http://localhost:8001/api/v1
+
+(Optional) Installing a sample application
+kubectl create namespace sock-shop
+kubectl apply -n sock-shop -f "https://github.com/microservices-demo/microservices-demo/blob/master/deploy/kubernetes/complete-demo.yaml?raw=true"
+
+kubectl describe svc front-end -n sock-shop
+kubectl get pods -n sock-shop
+
+Then go to the IP address of your cluster’s master node in your browser, and specify the given port. So for example, http://<master_ip>:<port>. In the example above, this was 31869, but it is a different port for you.
+If there is a firewall, make sure it exposes this port to the internet before you try to access it.
+
+
+Tear down
+To uninstall the socks shop, run kubectl delete namespace sock-shop on the master.
+To undo what kubeadm did, simply run:
+# kubeadm reset
+If you wish to start over, run systemctl start kubelet followed by kubeadm init or kubeadm join.
+
+
+
