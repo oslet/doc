@@ -36,7 +36,10 @@ kubeadm init
 kubectl taint nodes --all dedicated-
 
 (3/4) Installing a pod network
+kubectl create -f https://git.io/weave-kube
+
 kubectl apply -f <add-on.yaml>
+
 
 kubectl get pods --all-namespaces
 
@@ -70,6 +73,11 @@ To uninstall the socks shop, run kubectl delete namespace sock-shop on the maste
 To undo what kubeadm did, simply run:
 # kubeadm reset
 If you wish to start over, run systemctl start kubelet followed by kubeadm init or kubeadm join.
+
+
+### 常用命令 ###
+kubectl describe svc kubernetes-dashboard --namespace=kube-system   //查看应用的基本信息，如ip,端口
+kubectl get ep kube-dns --namespace=kube-system   //查看节点ip与端口信息
 
 
 

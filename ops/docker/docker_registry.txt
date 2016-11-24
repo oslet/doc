@@ -1,0 +1,85 @@
+docker私有仓库建立
+(1/6)
+常规步骤
+docker run -d -p 5000:5000 --restart=always --name registry registry:2
+docker pull ubuntu && docker tag ubuntu localhost:5000/ubuntu
+docker push localhost:5000/ubuntu
+docker pull localhost:5000/ubuntu
+docker stop registry && docker rm -v registry
+
+(2/6)
+本地存储:
+docker run -d -p 5000:5000 --restart=always --name registry \
+  -v `pwd`/data:/var/lib/registry \
+  registry:2
+
+(3/6)
+运行在域名下(自行颁发证书或者购买):
+自行颁发:
+mkdir -p certs && bash ca.sh
+生成的 newcert.pem 与 cacert.pem 合并下,注意cacert.pem中只保留 ---BEGIN及以下的部份.
+
+docker run -d -p 5000:5000 --restart=always --name registry \
+  -v `pwd`/certs:/certs \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/newcert.pem \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/newkey.pem \
+  registry:2
+
+docker pull ubuntu
+docker tag ubuntu myregistrydomain.com:5000/ubuntu
+docker push myregistrydomain.com:5000/ubuntu
+docker pull myregistrydomain.com:5000/ubuntu
+
+(4/6)
+在其他主机上拉取镜像时会出现 CERT_AUTHORITY_INVALID,这是因为自行颁发的证书不受信任,可在
+主机上安装脚本生成的 cacert.pem 文件
+
+ubuntu:
+cp certs/domain.crt /usr/local/share/ca-certificates/cacert.pem
+update-ca-certificates
+
+centos:
+cp certs/domain.crt /etc/pki/ca-trust/source/anchors/cacert.pem
+update-ca-trust
+个别发行版需手动执行 update-ca-trust enable
+
+最后再重启即可
+service docker stop && service docker start
+
+(5/6)
+加入401认证
+mkdir auth
+docker run --entrypoint htpasswd registry:2 -Bbn testuser testpassword > auth/htpasswd
+
+sudo docker run -d -p 443:5000 --restart=always --name registry \
+  -v `pwd`/auth:/auth \
+  -e "REGISTRY_AUTH=htpasswd" \
+  -e "REGISTRY_AUTH_HTPASSWD_REALM=Registry Realm" \
+  -e REGISTRY_AUTH_HTPASSWD_PATH=/auth/htpasswd \
+  -v `pwd`/certs:/certs \
+  -e REGISTRY_HTTP_TLS_CERTIFICATE=/certs/newcert.pem \
+  -e REGISTRY_HTTP_TLS_KEY=/certs/newkey.pem \
+  registry:2
+
+再拉取或者推送镜像时需先登陆
+sudo docker login docker.domain.name
+默认会生成一个 /$HOME/.docker/config.json文件，有大量主机时可使用Ansible进行推送.
+(6/6)
+使用compose进行管理
+vi docker-compose.yml
+
+registry:
+  restart: always
+  image: registry:2
+  ports:
+    - 443:5000
+  environment:
+    REGISTRY_HTTP_TLS_CERTIFICATE: /certs/domain.crt
+    REGISTRY_HTTP_TLS_KEY: /certs/domain.key
+    REGISTRY_AUTH: htpasswd
+    REGISTRY_AUTH_HTPASSWD_PATH: /auth/htpasswd
+    REGISTRY_AUTH_HTPASSWD_REALM: Registry Realm
+  volumes:
+    - /path/data:/var/lib/registry
+    - /path/certs:/certs
+    - /path/auth:/auth
