@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 function checkalive(){
 
 m_log=/tmp/check_tomcat.log
@@ -16,12 +15,12 @@ if [ $code == 200 ]; then
         echo "OK,$1 app running."
   else
         echo "`date '+%Y-%m-%d %H:%M:%S'` $check_path app is down,will be starting" >> $m_log
-        $1/bin/shutdown.sh
+        $1/bin/shutdown.sh 1 > /dev/null 2>&1
         exist_pid=`ps -ef | grep -v grep | grep "$1" | awk '{print $2}'`
-    if [ -z $exist_pid ]; then
-        exit
-      else
+    if [ -n $exist_pid ]; then
         kill -9 $exist_pid
+      else
+        exit
     fi
         $1/bin/startup.sh
         echo "`date '+%Y-%m-%d %H:%M:%S'` $1 app is running now" >> $m_log
