@@ -79,5 +79,7 @@ If you wish to start over, run systemctl start kubelet followed by kubeadm init 
 kubectl describe svc kubernetes-dashboard --namespace=kube-system   //查看应用的基本信息，如ip,端口
 kubectl get ep kube-dns --namespace=kube-system   //查看节点ip与端口信息
 
+kubectl create secret docker-registry myregistrykey --docker-server=docker.platenogroup.com --docker-username=testuser --docker-password=testpassword --docker-email=DOCKER_EMAIL
 
+kubectl logs weave-net-orrl7 -c weave --namespace=kube-system   //查看pods日志
 
