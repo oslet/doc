@@ -1,0 +1,13 @@
+jconsole over ssh
+
+1.本地主机 打开动态端口转发
+ssh -D 1234 user@myserver.example.com
+
+2.本地主机 使用jconsole连接
+jconsole -J-DsocksProxyHost=localhost -J-DsocksProxyPort=1234 service:jmx:rmi:///jndi/rmi://localhost:9090/jmxrmi
+
+3.远程主机 打开jmx监听端口
+-Dcom.sun.management.jmxremote \
+-Dcom.sun.management.jmxremote.port=9090 \
+-Dcom.sun.management.jmxremote.ssl=false \
+-Dcom.sun.management.jmxremote.authenticate=false

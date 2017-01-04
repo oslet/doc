@@ -1,0 +1,54 @@
+jvm 内存分配情况
+
+jmap -heap `pidof java`
+
+MinHeapFreeRatio = 40
+MaxHeapFreeRatio = 70
+MaxHeadSize = $xmx
+NewSize = $Xmn
+MaxNewSize = $Xmn
+OldSize = 5MB
+NewRatio = 2
+SurvivorRatio = 16
+PermSize = $permsize
+MaxPermSize = $permsize
+G1HeapRegionSize = 0
+
+New Generation (Edge + 1 Survivor Space)
+= $xmx - Eden - FromSpace
+
+Eden Space:
+= $New Generation - From Space
+
+From Space:
+= New Generation - Edge
+
+To Space:
+= From Space
+
+concurrent mark-sweep generation:
+= $xmx - $Xmn
+
+Perm Generation:
+= $permsize
+
+NewRatio: 调整 新生代与老生代内存大小比例
+2表示 新生代:老生代=1:2, 即新生代占堆内存1/3
+
+SurvivorRation: 设置两个Survivor与eden比值
+默认为8，表示两个Survivor:eden=2:8,即
+一个Survivor占新生代的 1/10.
+
+堆内存分配:
+JVM初始分配的内存由-Xms指定，默认是物理内存的1/64；JVM最大分配的内存由-Xmx指 定，默认是物理内存的1/4。
+默认空余堆内存小于40%时，JVM就会增大堆直到-Xmx的最大限制；空余堆内存大于70%时，JVM会减少堆直到 -Xms的最小限制。
+因此服务器一般设置-Xms、-Xmx相等以避免在每次GC 后调整堆的大小。
+
+非堆内存分配:
+JVM使用-XX:PermSize设置非堆内存初始值，默认是物理内存的1/64；由XX:MaxPermSize设置最大非堆内存的大小，
+默认是物理内存的1/4.
+
+
+
+
+
