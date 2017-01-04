@@ -38,12 +38,13 @@ http://54.223.127.87/
 demo/demo
 
 ## 安装过程
-1. install hbase
-wget -c -t 0 http://www.apache.org/dist/hbase/stable/hbase-1.2.4-bin.tar.gz
-tar zxvf hbase-1.2.4-bin.tar.gz
-cd hbase-1.2.4
-nano hbase-env.sh 增加 JAVA_HOME变量
+### (1/5). install hbase  
+wget -c -t 0 http://www.apache.org/dist/hbase/stable/hbase-1.2.4-bin.tar.gz  
+tar zxvf hbase-1.2.4-bin.tar.gz  
+cd hbase-1.2.4  
+nano hbase-env.sh 增加 JAVA_HOME变量  
 
+```
 cat > ./conf/hbase-site.xml << EOF
 <configuration>
 <property>
@@ -56,13 +57,16 @@ cat > ./conf/hbase-site.xml << EOF
 </property>
 </configuration>
 EOF
+```
 
-./bin/start-hbase.sh
+./bin/start-hbase.sh  
 
-2. install opentsdb
-git clone git://github.com/OpenTSDB/opentsdb.git
-cd opentsdb
-./build.sh
+### (2/5). install opentsdb
+git clone git://github.com/OpenTSDB/opentsdb.git  
+cd opentsdb  
+./build.sh  
+
+```
 cat > ./build/opentsdb.conf <<EOF
 tsd.network.port = 4242
 tsd.http.staticroot = /home/oslet/soft/opentsdb/build/staticroot
@@ -71,11 +75,13 @@ tsd.core.auto_create_metrics = true
 tsd.core.plugin_path= /home/oslet/soft/opentsdb/build/plugins
 tsd.storage.hbase.zk_quorum=127.0.0.1:2181
 EOF
+```
 
+```
 cat > start.sh <<EOF
 #!/bin/bash
 
-### INSTALL ###
+
 #sudo apt-get install gnuplot
 #sudo apt-get install autoconf
 #sudo apt-get install git
@@ -86,12 +92,9 @@ cat > start.sh <<EOF
 
 #--------------------------------------------------------
 
-### create table ###
 #env COMPRESSION=NONE HBASE_HOME=/home/oslet/soft/hbase-1.2.4 `pwd`/src/create_table.sh
 
 #--------------------------------------------------------
-
-### startup ###
 
 #tsdtmp=${TMPDIR-'/tmp'}/tsd
 #master_ip=127.0.0.1 
@@ -99,28 +102,30 @@ cat > start.sh <<EOF
 #./build/tsdb tsd --port=4242 --staticroot=build/staticroot --cachedir="$tsdtmp" --zkquorum=master_ip:2181,slave1_ip:2181,slave2_ip:2181
 ./build/tsdb tsd --config ./build/opentsdb.conf
 EOF
+```
 
-chmod +x ./start.sh
-./start.sh
+chmod +x ./start.sh  
+./start.sh  
 
-3. Install mysql
-sudo apt install mysql-server
-service mysql start
+### (3/5). Install mysql  
+sudo apt install mysql-server  
+service mysql start  
 
-4. Install owl
-cd $GOPATH/src
-git clone https://github.com/TalkingData/owl
-cd owl
-godep go install owl/cfc
-godep go install owl/controller
-godep go install owl/inspector
-godep go install owl/netcollect
-godep go install owl/repeater
-godep go install owl/proxy
-godep go install owl/api
-godep go install owl/agent
+### (4/5). Install owl  
+cd $GOPATH/src  
+git clone https://github.com/TalkingData/owl  
+cd owl  
+godep go install owl/cfc  
+godep go install owl/controller  
+godep go install owl/inspector  
+godep go install owl/netcollect  
+godep go install owl/repeater  
+godep go install owl/proxy  
+godep go install owl/api  
+godep go install owl/agent  
 
-mkdir bin
+mkdir bin  
+```
 cp -a $GOPATH/bin/cfc \
 $GOPATH/bin/controller \
 $GOPATH/bin/inspector \
@@ -130,23 +135,24 @@ $GOPATH/bin/proxy \
 $GOPATH/bin/api \
 $GOPATH/bin/agent \
 bin
+```
+cp -a conf bin  
+依次修改conf目录中的配置文件为正确的信息，即可启动了  
+在scripts/init目录中有自动启动脚本，修改一下相关路径  
+也可加入开机启动, 临时启动如下  
+./cfc &  
+./controller &  
+./inspector &  
+./netcollect &  
+./repeater &  
+./proxy &  
+./api &  
+./agent &  
 
-cp -a conf bin
-依次修改conf目录中的配置文件为正确的信息，即可启动了,
-在scripts/init目录中有自动启动脚本，修改一下相关路径
-也可加入开机启动, 临时启动如下
-./cfc &
-./controller &
-./inspector &
-./netcollect &
-./repeater &
-./proxy &
-./api &
-./agent &
+web展示程序是在 static 目录,需安装nginx  
+sudo apt install nginx  
 
-web展示程序是在 static 目录,需安装nginx
-sudo apt install nginx
-
+```
 cat > /etc/nginx/sites-available/default <<EOF
 server {
 	server_name localhost;
@@ -166,14 +172,15 @@ location / {
     }
 }
 EOF
+```
 
-需修改 index_prod.html 中 api 为正确的线上地址.
+需修改 index_prod.html 中 api 为正确的线上地址.  
 
-5. 手动插入一条用户信息到 user表
-insert into user(username,password,role,status) value ('abc','64fa4cc59b3358fc0649b0a34e9f1b13','1','1')
+### (5/5). 手动插入一条用户信息到 user表  
+insert into user(username,password,role,status) value ('abc','64fa4cc59b3358fc0649b0a34e9f1b13','1','1')  
 
-注意password字段是md5加密串,与命令行md5sum生成的有区别,可用如下代码生成
-`
+注意password字段是md5加密串,与命令行md5sum生成的有区别,可用如下代码生成  
+```
 package main
 
 import (
@@ -195,4 +202,5 @@ func main() {
 	var a string = "eletmc"
 	fmt.Println("pass is : ", Md5(a))
 }
-`
+```
+
