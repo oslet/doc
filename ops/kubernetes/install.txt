@@ -36,8 +36,7 @@ kubeadm init
 kubectl taint nodes --all dedicated-
 
 (3/4) Installing a pod network
-kubectl create -f https://git.io/weave-kube
-
+kubectl apply -f http://docs.projectcalico.org/master/getting-started/kubernetes/installation/hosted/kubeadm/calico.yaml
 kubectl apply -f <add-on.yaml>
 
 
