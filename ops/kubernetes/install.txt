@@ -83,3 +83,5 @@ kubectl create secret docker-registry myregistrykey --docker-server=docker.plate
 
 kubectl logs weave-net-orrl7 -c weave --namespace=kube-system   //查看pods日志
 
+kubectl cordon app-22-containernode-01   //设置节点为不可调度的状态
+kubectl drain app-22-containernode-01 --force  --delete-local-data --ignore-daemonsets  //手动迁移节点应用到其他节点
