@@ -76,3 +76,7 @@ ss -o state established '( dport = :http or sport = :http )'  显示所有已建
 :: awk:
 awk -F: '$NF!~/^$/{SHELL[$NF]++}END{for(A in SHELL) print A,SHELL[A]}' /etc/passwd   统计用户shell个数
 netstat -ant | awk '$1~/tcp/{S[$NF]++}END{for (A in S) print A,S[A]}'   统计网络连接状态个数
+
+:: linux下查找包含bom头的文件和清除bom头命令
+grep -r -I -l $'^\xEF\xBB\xBF' ./
+find . -type f -exec sed -i 's/\xEF\xBB\xBF//' {} \;
