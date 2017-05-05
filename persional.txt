@@ -80,3 +80,12 @@ netstat -ant | awk '$1~/tcp/{S[$NF]++}END{for (A in S) print A,S[A]}'   统计�
 :: linux下查找包含bom头的文件和清除bom头命令
 grep -r -I -l $'^\xEF\xBB\xBF' ./
 find . -type f -exec sed -i 's/\xEF\xBB\xBF//' {} \;
+
+:: ipv4 regexp
+grep -Eri -o "([0-9]{1,3}[\.]){3}[0-9]{1,3}" *
+
+:: linux kernel purge
+dpkg --list | grep linux-image   查看已安装的内核镜像
+sudo apt purge linux-image-4.4.0-{66,72,75}-generic
+sudo apt purge linux-headers-4.4.0-{66,72,75}
+sudo apt purge linux-image-extra-4.4.0-{66,72,75}
