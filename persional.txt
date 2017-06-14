@@ -93,3 +93,15 @@ sudo apt purge linux-image-extra-4.4.0-{66,72,75}
 :: linux file descriptor
 grep -r MemTotal /proc/meminfo | awk '{printf("%d",$2/10)}'  系统支持的最大文件描述符的数量
 
+:: 安装glibc高版本
+strings /lib64/libc.so.6 |grep GLIBC_    查看系统glibc支持的版本
+wget http://mirror.bjtu.edu.cn/gnu/libc/glibc-2.14.tar.xz
+xz -d glibc-2.14.tar.xz
+tar xvf glibc-2.14.tar
+cd glibc-2.14
+mkdir build
+cd build
+../configure --prefix=/opt/glibc-2.14
+make -j4
+sudo make install
+export LD_LIBRARY_PATH=/opt/glibc-2.14/lib:$LD_LIBRARY_PATH    临时修改环境变量

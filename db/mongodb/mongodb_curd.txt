@@ -1,0 +1,12 @@
+//插入TestLog集合,并保存了数据
+for(var i=0;i<10;i++){db.user.insert({id:i,name:'sam'+i,age:i});}
+
+//查询
+db.user.find();
+
+//删除记录
+db.user.remove({});  ##删除所有记录
+db.user.remove({age:9});  ##删除age=9的记录
+db.user.remove({age:{$gt:6}});
+
+
