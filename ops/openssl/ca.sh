@@ -38,7 +38,7 @@ function mkcert()
 
     # sign the certficate request
     openssl ca ${SSLCNF} -policy policy_cert -batch \
-        -extensions www_cert -notext                \
+        -extensions v3_req -notext                \
         -out newcert.pem -infiles newreq.pem
 }
 
@@ -53,6 +53,12 @@ function revoke_cert()
     openssl ca ${SSLCNF} -gencrl -out ${CATOP}/crl.pem
 }
 
+function convert_cert()
+{
+    openssl x509 -in newcert.pem -out server.crt
+    cp newkey.pem server.key
+}
+
 newca
 
 mkcert
@@ -60,3 +66,5 @@ mkcert
 verify_cert
 
 #revoke_cert
+
+convert_cert

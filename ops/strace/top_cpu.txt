@@ -1,0 +1,7 @@
+//内核态函数调用跟踪 strace, 用户态函数调用 ltrace
+
+strace -p <pid>
+strace -cp <pid>  ##ctrl + c中断可看到时间消耗
+strace -T -e poll -p <pid>  ##单独看某一项syscall
+strace -eclone php -r 'exec("ls");'
+
