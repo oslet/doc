@@ -33,12 +33,16 @@ EOF
 (2/4) Initializing your master
 kubeadm init
 
-kubectl taint nodes --all dedicated-
+kubectl taint nodes --all node-role.kubernetes.io/master-
 
 (3/4) Installing a pod network
-kubectl apply -f http://docs.projectcalico.org/master/getting-started/kubernetes/installation/hosted/kubeadm/calico.yaml
-kubectl apply -f <add-on.yaml>
+For Kubeadm 1.6 with Kubernetes 1.6+
+kubectl apply -f http://docs.projectcalico.org/master/getting-started/kubernetes/installation/hosted/kubeadm/1.6/calico.yaml
 
+For Kubeadm 1.5 with Kubernetes 1.5.x:
+kubectl apply -f http://docs.projectcalico.org/master/getting-started/kubernetes/installation/hosted/kubeadm/1.5/calico.yaml
+
+kubectl apply -f <add-on.yaml>
 
 kubectl get pods --all-namespaces
 

@@ -1,0 +1,76 @@
+1. install
+curl -s https://s3.amazonaws.com/download.draios.com/stable/install-sysdig | sudo bash
+
+2. output
+第一列是事件序号，它是自动增长的；
+第二列是发生事件的时间戳；
+第三列是 CPU ID；
+第四列是命令；
+第五列是线程 ID；
+第六列是事件方向，比如进入 ioctl 函数为 >，离开为 <；
+第七列是事件名称（比如 ioctl）；
+第八列是事件参数。
+
+3. Sysdig 的输出文件的基本操作
+sysdig -w <output file>
+sysdig -r output file
+sysdig -A
+
+4. Sysdig 的过滤器
+过滤器遵从“类 . 字段”结构
+sysdig -l
+sysdig -r cyq.scap proc.name=docker
+
+5. Sysdig 中的 chisel（凿子）
+sysdig -cl
+sysdig -i topprocs_cpu
+sysdig -c topprocs_net
+sysdig -A -c echo_fds proc.name=sshd
+sysdig -A -c echo_fds fd.cip=192.168.1.11
+
+6. 使用 csysdig
+csysdig -vcontainers   //查看计算机上运行的容器列表及其资源使用情况
+csysdig -pc   //查看容器上下文的进程列表
+
+7. Sysdig 应用实例
+sysdig  -c spy_users   //监控系统中交互的用户活动
+sysdig  -c spy_users "user.name=root"
+
+sysdig -c topprocs_file   //查看使用硬盘带宽最多的进程
+sysdig -c fdcount_by proc.name "fd.type=file"   //列出使用大量文件描述符的进程
+sysdig -s 2000 -A -c echo_fds evt.buffer contains SELECT   //查看所有的 SQL select 查询
+
+sysdig -s 4096 -A -c echo_fds fd.cip=192.168.1.100 -r /mnt/sysdig/debian.scap.gz proc.name=sshd   //检查由特定 IP 地址，特定进程（如 sshd）提供的数据（ASCII 编码格式）
+sysdig -s 4096 -X -c echo_fds fd.cip=192.168.1.100 -r /mnt/sysdig/debian.scap.gz proc.name=sshd   //监控原生数据传输（二进制格式）
+sysdig fd.name=/etc/resolv.conf   //查看调用某个文件的进程
+
+sysdig -c fileslower 100   //查看操作文件大于 100ms 的进程
+sysdig -c netlower 1000   //查看大于 1s 的网络请求
+sysdig -c procexectime proc.name=nginx   //查看 nginx 进程的执行时间
+sysdig -c scallslower 1000 proc.name=hhvm   //查看 hhvm 大于 1s 的系统调用
+sysdig -c topscalls_time proc.name=hhvm   //查看 hhvm 耗时的系统调用
+sysdig -c topprocs_cpu evt.cpu=0   //查看 cpu0 占用资源最多的进程
+sysdig -c topports_server   //查看占用流量最大的端口
+sysdig -c topprocs_net   //查看占用流量最大的进程
+sysdig -c topfiles_bytes   //查看 io 最高的文件
+
+sysdig -c topprocs_net   //查看占用网络带宽最多的进程
+sysdig -c fdbytes_by fd.sport   //查看连接最多的服务器端口
+sysdig -c fdbytes_by fd.cip   //查看某客户端连接最多的 ip
+
+sysdig -pc -c topprocs_cpu container.name=centos   //查看运行在 centos 容器里 CPU 的使用率
+sysdig -pc -c topprocs_net container.name=centos   //查看运行在 centos 容器里网络带宽的使用率
+sysdig -pc -c topfiles_bytes container.name=centos   //查看在 centos 容器里占用 I/O 字节最多的文件
+sysdig -pc -c topconns container.name=centos   //查看在 centos 容器里网络连接的排名情况
+sysdig -pc -c spy_users container.name=centos   //显示 cnetos 容器里所有命令执行的情况
+
+sysdig -c httplog   //查看所有的 http 请求
+sysdig -c httptop   //查看 http url top 统计
+sysdig -A -c echo_fds fd.port=8080 and evt.buffer contains POST   //查看 8080 端口 post 的请求
+sysdig proc.name=nginx and evt.type=accept   //查看 nginx 进程的 accept 链接
+
+
+
+
+
+
