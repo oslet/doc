@@ -1,0 +1,92 @@
+###### mysql init script ######
+
+cd /opt/mysql55/bin
+./mysqladmin -p password
+./mysql -uroot -p -S /data/mysql/mysqld.sock
+update mysql.user set password=PASSWORD('newpassword') where User='root';
+
+CREATE DATABASE db00 DEFAULT CHARSET utf8 COLLATE utf8_general_ci;
+
+grant select, insert, update, delete on testdb.* to common_user@'%' identified by '123345';
+
+grant all privileges on testdb.* to common_user@'192.168.0.%' identified by '123345';
+
+####### mysql query ########
+SELECT DISTINCT CONCAT('User: ''',user,'''@''',host,''';') AS query FROM mysql.user;
+select * from mysql.user where user='cactiuser' \G
+show grants for 'cactiuser'@'%';    
+
+######  mysql log clear #######
+show binary logs   //查看日志
+purge master logs before '2015-05-10 00:00:00'   //
+expire_logs_day=3   //my.cnf 自动清理3天以前的日志
+
+###### create super user #######
+grant all privileges on *.* to 'root'@'192.168.3.5' identified by 'password' with grant option;
+
+
+###### kill process #########
+mysql -uroot -p -e "select concat('kill ',id,';') from information_schema.processlist where user='assistant' into outfile '/tmp/myprocess.list'"
+mysql -uroot -p -e "source /tmp/myprocess.list"
+
+
+###### mysql query db table index size ######
+select concat(round(sum(DATA_LENGTH/1024/1024),2),'MB') as data from TABLES;   //查询所有数据的大小 
+select concat(round(sum(DATA_LENGTH/1024/1024),2),'MB') as data from TABLES where table_schema='yoon';   //查看指定数据库实例的大小，比如说数据库 yoon
+select concat(round(sum(DATA_LENGTH/1024/1024),2),'MB') as data from TABLES where table_schema='yoon' and table_name='yoon';   //查看指定数据库的表的大小，比如说数据库 yoon 中的 yoon 表 
+SELECT CONCAT(ROUND(SUM(index_length)/(1024*1024), 2), ' MB') AS 'Total Index Size' FROM TABLES  WHERE table_schema = 'sakila';   //指定库的索引大小
+SELECT CONCAT(ROUND(SUM(index_length)/(1024*1024), 2), ' MB') AS 'Total Index Size' FROM TABLES  WHERE table_schema = 'test' and table_name='sakila';   //指定库的指定表的索引大小
+
+SELECT CONCAT(table_schema,'.',table_name) AS 'Table Name', CONCAT(ROUND(table_rows/1000000,4),'M') AS 'Number of Rows', 
+CONCAT(ROUND(data_length/(1024*1024*1024),4),'G') AS 'Data Size', CONCAT(ROUND(index_length/(1024*1024*1024),4),'G') AS 'Index Size', 
+CONCAT(ROUND((data_length+index_length)/(1024*1024*1024),4),'G') AS'Total'FROM information_schema.TABLES WHERE table_schema LIKE 'sakila';
+//一个库中的使用情况
+
+###### mysql slow log ######
+show variables like "long_query_time"   //查看慢查询时间
+show status like "%slow_queries%"   //查看慢查询配置情况
+show variables like "%slow%"   //查看慢查询日志路径
+
+
+set global slow_query_log = ON   //开启慢日志
+set global long_query_time = 1   //设置全局慢sql时间
+set session long_query_time = 1  //设置会话慢sql时间
+
+###### mysql master slave #########
+1.change my.cnf
+master:
+vi /etc/my.cnf
+[mysqld]
+log-bin=mysql-bin
+server-id=1
+binlog-ignore-db=mysql
+
+slave:
+vi /etc/my.cnf
+[mysqld]
+log-bin=mysql-bin
+server-id=2
+replicate-ignore-db=mysql 
+
+2.restart mysqld
+/etc/init.d/mysqld restart
+
+3.create replication user on the master
+/opt/mysql55/bin/mysql -uroot -p
+GRANT REPLICATION SLAVE ON *.* to 'syncdb'@'192.168.0.%' identified by 'password'
+
+4. login master query status
+show master status;
+flush tables with read lock
+
+5. configure slave
+change master to master_host='192.168.0.1',master_user='syncdb',master_password='password',master_log_file='mysql-bin.000006',master_log_pos=220;
+
+start slave;
+
+6.unlock master
+unlock tables;
+
+7.check slave
+show slave status\G
+

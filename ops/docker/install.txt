@@ -1,0 +1,29 @@
+1.Install required packages
+yum install -y yum-utils device-mapper-persistent-data lvm2
+
+2.Config repo for docker
+yum-config-manager \
+    --add-repo \
+    https://download.docker.com/linux/centos/docker-ce.repo
+	
+3. Enable repo docker
+yum-config-manager --enable docker-ce-edge
+
+4. Create yum cache
+yum makecache fast
+
+5. Install docker
+yum install -y docker-ce
+
+6. Select docker version
+yum list docker-ce.x86_64  --showduplicates | sort -r
+
+yum install docker-ce-stable
+
+7. Auto start docker
+systemctl start docker
+systemctl enable docker
+
+8. Test docker
+docker run hello-world
+
