@@ -80,6 +80,7 @@ show master status;
 flush tables with read lock
 
 5. configure slave
+reset slave(when Could not initialize master info structure)
 change master to master_host='192.168.0.1',master_user='syncdb',master_password='password',master_log_file='mysql-bin.000006',master_log_pos=220;
 
 start slave;

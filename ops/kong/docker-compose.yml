@@ -1,0 +1,73 @@
+version: '2'
+services:
+  postgres:
+    image: 10.100.14.41/library/postgres:9.4
+    container_name: kong-database
+    restart: always
+    ports:
+      - 5432:5432
+    volumes:
+      - /data/postgresql:/var/lib/postgresql/data
+    networks:
+      - kong_net
+    env_file:
+      - ./common/config/db/env
+
+  kong:
+    image: 10.100.14.41/library/kong:latest
+    container_name: kong
+    env_file:
+      - ./common/config/kong/env
+    restart: always
+    ports:
+      - 127.0.0.1:8001:8001
+      - 8000:8000
+      - 8443:8443
+      - 8444:8444
+    volumes:
+      - ./common/config/kong/nginx-kong.conf:/usr/local/kong/nginx-kong.conf:z
+      - ./common/config/kong/nginx.conf:/usr/local/kong/nginx.conf:z
+      - /data/log/kong:/usr/local/kong/logs
+    depends_on:
+      - postgres
+    networks:
+      - kong_net
+
+  kong-dahsboard:
+    image: 10.100.14.41/library/kong-dashboard:latest
+    container_name: kong-dashboard
+    restart: always
+    ports:
+      - 8080:8080
+    depends_on:
+      - kong
+    networks:
+      - kong_net
+
+  konga:
+    image: 10.100.14.41/library/konga:latest
+    container_name: konga
+    restart: always
+    ports:
+      - 1337:1337
+    depends_on:
+      - kong
+    networks:
+      - kong_net
+
+  graphite-statsd:
+    image: 10.100.14.41/library/graphite-statsd:latest
+    container_name: graphite-statsd
+    restart: always
+    ports:
+      - 8081:80
+      - 2003-2004:2003-2004
+      - 2023-2024:2023-2024
+      - 8125:8125/udp
+      - 8126:8126
+    networks:
+      - kong_net
+ 
+networks:
+  kong_net:
+    external: false

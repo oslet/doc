@@ -1,0 +1,120 @@
+
+kong docker quick:
+
+sudo docker run -d --name kong-database \
+              -p 5432:5432 \
+              -e "POSTGRES_USER=kong" \
+              -e "POSTGRES_DB=kong" \
+              -e "restart=always" \
+              postgres:9.4
+
+
+sudo docker run -it --rm \
+    --link kong-database:kong-database \
+    -e "KONG_DATABASE=postgres" \
+    -e "KONG_PG_HOST=kong-database" \
+    kong:latest kong migrations up
+
+
+sudo docker run -d --name kong \
+    --link kong-database:kong-database \
+    -e "KONG_DATABASE=postgres" \
+    -e "KONG_PG_HOST=kong-database" \
+    -e "restart=always" \
+    -p 8000:8000 \
+    -p 8443:8443 \
+    -p 8001:8001 \
+    -p 8444:8444 \
+    kong:latest
+
+
+kong dashboard:
+
+sudo docker run -d  --name kong-dashboard \
+     -e "restart=always" \
+     -p 8080:8080 \
+     pgbi/kong-dashboard
+
+
+APIKEY AUTH:
+
+curl http://localhost:8001/apis \
+  --data name=admin-api \
+  --data uris=/admin-api \
+  --data upstream_url=http://localhost:8001
+
+curl -i -X POST \
+  --url http://localhost:8001/apis/admin-api/plugins/ \
+  --data 'name=key-auth' \
+  --data 'config.key_names=apikey'
+
+  curl -i -X POST \
+  --url http://localhost:8001/consumers/ \
+  --data "username=Jason"
+
+  curl -i -X POST \
+  --url http://localhost:8001/consumers/Jason/key-auth/ \
+  --data 'key=ENTER_KEY_HERE'
+
+  curl -i -X GET \
+  --url http://localhost:8000 \
+  --header "apikey: ENTER_KEY_HERE"
+
+
+BASIC AUTH:
+
+  curl -X POST http://localhost:8001/apis/admin-api/plugins \
+    --data "name=basic-auth" \
+    --data "config.hide_credentials=true"
+
+curl -d "username=admin-api-mgr&custom_id=SOME_CUSTOM_ID" http://localhost:8001/consumers/
+
+curl -X POST http://localhost:8001/consumers/admin-api-mgr/basic-auth \
+    --data "username=admin" \
+    --data "password=admin"
+
+curl http://localhost:8000/apis/example-api \
+    -H 'Authorization: Basic QWxhZGRpbjpPcGVuU2VzYW1l'
+
+
+ADMIN API loopback:
+
+curl http://localhost:8001/apis \
+  --data name=admin-api \
+  --data uris=/admin-api \
+  --data upstream_url=http://localhost:8001
+
+curl -X POST http://localhost:8001/apis/admin-api/plugins \
+    --data "name=basic-auth" \
+    --data "config.hide_credentials=true"
+
+curl -d "username=admin-api-mgr" http://localhost:8001/consumers/
+
+curl -X POST http://localhost:8001/consumers/admin-api-mgr/basic-auth \
+    --data "username=admin" \
+    --data "password=admin"
+
+
+statsd:
+
+curl -X POST http://localhost:8001/apis/admin-api/plugins \
+    --data "name=statsd" \
+    --data "config.host=10.100.14.238" \
+    --data "config.port=8125"
+
+
+sudo docker run -d\
+ --name graphite\
+ --restart=always\
+ -p 80:80\
+ -p 2003-2004:2003-2004\
+ -p 2023-2024:2023-2024\
+ -p 8125:8125/udp\
+ -p 8126:8126\
+ hopsoft/graphite-statsd
+
+
+upstream:
+curl -X PUT http://localhost:8001/upstreams --data "name=plmplus"
+curl -X POST http://localhost:8001/upstreams/plmplus/targets --data "target=10.100.113.70:8001" --data "weight=1"
+curl -X POST http://localhost:8001/upstreams/plmplus/targets --data "target=10.100.14.41:8001" --data "weight=1"
