@@ -79,7 +79,7 @@ If you wish to start over, run systemctl start kubelet followed by kubeadm init 
 
 
 ### 常用命令 ###
-kubectl create -f https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml   //安装dashboard
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/master/src/deploy/recommended/kubernetes-dashboard.yaml   //安装dashboard
 kubectl describe svc kubernetes-dashboard --namespace=kube-system   //查看应用的基本信息，如ip,端口
 kubectl get ep kube-dns --namespace=kube-system   //查看节点ip与端口信息
 
