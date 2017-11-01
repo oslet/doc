@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>布尔表达式</title>
+        <body>
+            <script language="javascript" type="text/javascript">
+            <!--
+            function checkYear(){
+                var txtYearObj = document.all.txtYear;
+                var txtYear=txtYearObj.value;
+                if((txtYear==null) || (txtYear.length<1)||(txtYear<0))
+                {
+                    //文本框值为空
+                    window.alert("请在文本框中输入正确的年份! ");
+                    txtYearObj.focus();
+                    return;
+                }
+                if(isNaN(txtYear))
+                {
+                    //用户输入不是数字
+                    window.alert("年份必须为整型数字! ");
+                    txtYearObj.focus();
+                    return;
+                }
+                if(isLeapYear(txtYear))
+                window.alert(txtYear + "年是闰年! ");
+                else
+                window.alert(txtYear+ "年不是闰年");
+            }
+            function isLeapYear(yearVal)
+            {
+                if((yearVal % 100 == 0) && (yearVal % 400 == 0))
+                return ture;
+                if(yearVal % 4 == 0) return true;
+                return false;
+            }
+            //-->
+            </script>
+            <form action="#" name="frmYear">
+                请输入当前年份:
+                <input type="text" name="txtYear">
+                <p>请单击按钮以判断是否为闰年:
+                    <input type="button" value="按钮" onclick="checkYear()">
+                    </form>
+                    </body>
+                    </head>
+                    </html>
