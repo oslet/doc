@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <body>
+        <p>如果时间早于20:00，会获得问候Good day".</p>
+        <button onclick="myFunction()">单击这里</button>
+        <p id="demo"></p>
+        <script type="text/javascript">
+        function myFunction(){
+            var x="";
+            var time=new Date().getHours();
+            if(time>20)
+            {
+                x="Good day";
+            }
+            document.getElementById("demo").innerHTML=x;
+        }
+
+        </script>
+    </body>
+</html>

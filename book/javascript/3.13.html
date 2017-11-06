@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+        <script language="javascript">
+            function countdown(title,Intime,divId){
+                var online= new Date(Intime);
+                var now= new Date();
+                var leave = online.getTime() - now.getTime();
+                var day=Math.floor(leave/(1000*60*60*24))+1;
+                if(day>1){
+                    if(document.all){
+                        divId.innerHTML="<b>--------距"+title+"还有"+day+"天！</b>";
+                    }
+                } else {
+                    if(day ==1){
+                        if(document.all){
+                            divId.innerHTML="<b>-------明天就是"+title+"啦!</b>";
+                        }
+                    } else {
+                        if(day==0){divid.innerHTML="<b>今天就是"+title+"呀!</b>";
+                    } else {
+                        if(document.all){
+                            divid.innerHTML="<b>------唉呀！ "+title+"已经过了! </b>";
+                        }
+                    }
+                }
+            }
+            }
+        </script>
+</head>
+    <body>
+        <table width="350" height="450" border="0" align="center" cellpadding="0" cellspacing="0">
+            <tr>
+                <td valign="bottom"><table width="346" height="418" bordr="0" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td width="76"></td>
+                        <td width="270">
+                            <div id="countDown">
+                                <b>------</b>
+                            </div>
+                            <script language="javascript">
+                            countdown("2018年元旦","1/1/2018",countDown);</script>
+                        </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+    </body>
+</html>
