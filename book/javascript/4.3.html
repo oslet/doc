@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>在表达式中使用函数</title>
+        <script type="text/javascript">
+        function isLeapYear(year){
+            if(year%4==0&&year%100!=0||year%400==0)
+            {
+                return year+"年是闰年";
+            }
+            else {
+                return year+"年不是闰年"
+            }
+        }
+        document.write(isLeapYear(2014));
+        </script>
+    </head>
+    <body>
+    </body>
+</html>

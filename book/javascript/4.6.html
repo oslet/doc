@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>嵌套函数的应用</title>
+        <script type="text/javascript">
+        var outter=20;
+        function add(number1,number2){
+            function innerAdd(){
+                alert("参数的和为: "+(number1+number2+outter));
+            }
+            return innerAdd();
+        }
+        </script>
+    </head>
+    <body>
+        <script type="text/javascript">
+        add(20,20);
+        </script>
+    </body>
+</html>

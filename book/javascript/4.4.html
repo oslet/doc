@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>在事件响应中调用函数</title>
+
+    <script type="text/javascript">
+    function showHello(){
+        var count=document.myForm.txtCount.value;
+        for(i=0;i<count;i++){
+            document.write("<H2>HelloWorld</H2");
+        }
+    }
+    </script>
+    </head>
+    <body>
+        <form name="myForm">
+            <input type="text" name="txtCount" />
+            <input type="submit" name="Submit" value="显示HelloWorld" onClick="showHello()">
+        </form>
+    </body>    
+    </html>
