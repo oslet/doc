@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <title>购物简易计算器</title>
+        <style>
+            section {
+                background-color:#C9E495;
+                width:260PX;
+                height:320px;
+                text-align:center;
+                padding-top:1px;
+            }
+            .textBaroder
+            {
+                border-width:1px;
+                border-style:solid;
+            }
+        </style>
+        <script>
+            function compute(op)
+            {
+                var num1,num2;
+                num1=parseFloat(document.myform.txtNum1.value);
+                num2=parseFloat(document.myform.txtNum2.value);
+                if(op=="+")
+                document.myform.txtResult.value=num1+num2;
+                if(op=="-")
+                document.myform.txtResult.value=num1-num2;
+                if(op=="*")
+                document.myform.txtResult.value=num1*num2;
+                if(op=="/" && num2!=0)
+                document.myform.txtResult.value=num1/num2;
+            }
+        </script>
+    </head>
+    <body>
+        <section>
+            <h1><img src="image/logo.gif" width="240" height="31">欢迎来到淘宝!</h1>
+            <form action="" method="post" name="myform" id="myform">
+                <h3><img src="images/shop.gif" width="514" height="54">购物简易计算器</h3>
+                <p>第一个数<input name="txtNum1" type="text" class="textBaroder" id="txtNum1" size="25"></p>
+                <p>第二个数<input name="txtNum2" type="text" class="textBaroder" id="txtNum2" size="25"></p>
+                <p><input name="addButton2" type="button" id="addbutton2" value=" + " onClick="compute('+')">
+                <input name="subButton2" type="button" id="subButton2" value=" - " onClick="compute('-')">
+                <input name="mulButton2" type="button" id="mulButton2" value=" x " onClick="compute('*')">
+                <input name="divButton2" type="button" id="divButton2" value=" / " onclick="compute('/')">
+                </p>
+            <p>计算结果<input name="txtResult" type="text" class="textBarorder" id="txtResult" size="25"></p>
+            </form>
+        </section>
+    </body>
+</html>
