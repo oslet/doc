@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <META http-equiv=Content-Type content="text/html;charset=utf8">
+            <script language=JavaScript>
+                var array1=new Array(1,2,3,4,5,6);
+                var array2=new Array(7,8,9,10);
+                var array=array1.concat(array2);
+                function writeArr(arrname,sp)
+                {
+                    for(var i=0;i<arrname.length;i++)
+                    {
+                        document.write(arrname[i]);
+                        document.write(sp);
+                    }
+                    document.write("<br>");
+                }
+                document.write("数组1: ");
+                writeArr(array1,",");
+                document.write("数组2: ");
+                writeArr(array2,",");
+                document.write("数组3: ");
+                writeArr(array,",");
+            </script>
+    </head>
+    <body></body>
+</html>

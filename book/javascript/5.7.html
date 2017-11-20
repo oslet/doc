@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+    <head>
+    <META http-equiv=Content-Type content="text/html;charset=utf8">
+        <script>
+            Array.prototype.removed=0;
+            Array.prototype.removeAt=function(index)
+            {
+                if(isNaN(index)||index<0)
+                {return false;}
+                if(index>=this.length)
+                {index=this.legnth-1}
+                for(var i=index;i<this.length;i++)
+                {
+                    this[i]=this[i+1];
+                }
+                this.length-=1;
+                this.removed++;
+            }
+            Array.prototype.outPut=function(sp)
+            {
+                for(var i=0;i<this.length;i++)
+                {
+                    document.write(this[i]);
+                    document.write(sp);
+                }
+                document.write("<br>");
+            }
+            var arr=new Array(1,2,3,4,5,6,7,8,9);
+            arr.outPut(" ");
+            document.write("删除一个数据<br>");
+            arr.removeAt(2);
+            arr.outPut(" ");
+            arr.removeAt(4);
+            document.write("删除一个数据<br>");
+            arr.outPut(" ")
+            document.write("一共删除了"+arr.removed+"个数据")
+        </script>
+</head>
+<body>
+</body>
+</html>

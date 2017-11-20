@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <META http-equiv=Content-Type content="text/html;charset=utf8">
+        <Script language="JavaScript">
+            var arr=new Array(1,6,3,40,1,"a","b2","A","B");
+            writeArr("排序前",arr);
+            writeArr("升序排列",arr.sort());
+            writeArr("降序排列,字母不分大小写",arr.sort(desc));
+            writeArr("严格降序排列",arr.sort(desc1))
+            function writeArr(str,array)
+            {
+                document.write(str+":");
+                document.write(array.join(","));
+                document.write("<br>");
+            }
+            function desc(a,b)
+            {
+                var a=new String(a);
+                var b=new String(b);
+                return -1*a.localeCompare(b);
+            }
+            function desc1(a,b)
+            {
+                var stra=new String(a);
+                var strb=new String(b);
+                var ai=stra.charCodeAt(0);
+                var bi=stra.charCodeAt(0);
+                if(ai>bi)
+                return -1;
+                else
+                return 1;
+            }
+        </Script>
+</head>
+<body></body>
+</html>

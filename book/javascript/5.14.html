@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <META http-equiv=Content-Type content="text/html;charset=utf8">
+            <Script language="JavaScript">
+                var arr=new Array(0,1,2,3,4,5,6,7,8,9,10);
+                var rewith=new Array("a","b","c");
+                var tmp1=arr.splice(2,5,rewith);
+                with(document)
+                {
+                    writeArr("替换了5个数据",tmp1);
+                    writeArr("替换为: ",rewith);
+                    writeArr("替换后",arr);
+                    var tmp2=arr.splice(5,2);
+                    writeArr("删除2个数据",tmp2);
+                    writeArr("替换后",arr);
+                }
+                function writeArr(str,array)
+                {
+                    document.write(str+":");
+                    document.write(array.join(","));
+                    document.write("<br>");
+                }
+            </Script>
+    </head>
+    <body></body>
+</html>
