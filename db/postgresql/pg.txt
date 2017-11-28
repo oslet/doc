@@ -66,3 +66,5 @@ pg_dump -h hostname -p port -U user -W password -d dbname > dbname.dump
 pg_dumpall -h hostname -p port -U user -W password
 #恢复备份
 psql -h hostname -p port -U user -W password -d dbname < dbname.dump
+#删除会话，一般用于还原数据库
+select pg_terminate_backend(pid) from pg_stat_activity where datname='kong' and pid<>pg_backend_pid();
