@@ -1,0 +1,35 @@
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf8">
+        <title>自定义对象</title>
+        <script language="JavaScript" type="text/javascript">
+        function Student(iName,iAddress,iGrade,iScore)
+        {
+            this.name=iName;
+            this.address=iAddress;
+            this.grade=iGrade;
+            this.Score=iScore;
+            this.information=showInformation;
+        }
+        function showInformation()
+        {
+            var msg="";
+            msg="学生信息: \n" 
+            msg+="\n学生姓名: "+this.name+" \n";
+            msg+="家庭地址:"+this.address+"\n";
+            msg+="班级:"+this.grade+"\n";
+            msg+="分数:"+this.Score 
+            window.alert(msg);
+        }
+        var ZJDX=new Student("刘明明","新缰乌鲁木齐100号","401","99");
+        </script>
+    </head>
+    <body>
+        <br>
+        <center>
+            <form>
+                <input type="button" value="查看" onclick="ZJDX.information()">
+            </form>
+        </center>
+    </body>
+</html>

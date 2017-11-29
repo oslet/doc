@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>自定义对象</title>
+        <script language="JavaScript" type="text/javascript">
+        function Student(iName,iAddress,iGrade,iScore)
+        {
+            this.name=iName;
+            this.address=iAddress;
+            this.grade=iGrade;
+            this.score=iScore;
+            this.information=showInformation;
+        }
+        function showInformation()
+        {
+            var msg="";
+            msg="通过原型给对象添加新属性和新方法: \n\n";
+            msg+="原始属性:\n";
+            msg+="学生姓名:"+this.name+"\n";
+            msg+="家庭住址:"+this.grade+"\n";
+            msg+="班级:"+this.grade+"\n";
+            msg+="分数:"+this.score+"\n";
+            msg+="新属性:\n";
+            msg+="性别:"+this.addAttributeOfSex+"\n";
+            msg+="新方法:\n";
+            msg+="方法返回:"+this.addMethod+"\n";
+            window.alert(msg);
+        }
+        function MyMethod()
+        {
+            var AddMsg="New Method Of Object!";
+            return AddMsg;
+        }
+        var ZJDX=new Student("刘明明","新彊乌鲁木齐100号","401","99");
+        Student.prototype.addAttributeOfSex="男";
+        Student.prototype.addMethod=MyMethod();
+        </script>
+    </head>
+    <body>
+        <br>
+        <center>
+            <form>
+                <input type="button" value="查看" onclick="ZJDX.information()">
+            </form>
+        </center>
+    </body>
+</html>
