@@ -1,0 +1,87 @@
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: monitoring_prometheus
+    restart: unless-stopped
+    volumes:
+      - ./conf/prometheus:/etc/prometheus
+      - ./data/prometheus:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.enable-lifecycle'
+      - '--web.enable-admin-api'
+    expose:
+      - 9090
+    ports:
+      - 9090:9090
+    links:
+      - cadvisor:cadvisor
+      - node-exporter:node-exporter
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: monitoring_node_exporter
+    restart: unless-stopped
+    expose:
+      - 9100
+    ports:
+      - 9100:9100
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:latest
+    container_name: monitoring_blackbox_exporter
+    restart: unless-stopped
+    expose:
+      - 9115
+    ports:
+      - 9115:9115
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: monitoring_alertmanager
+    restart: unless-stopped
+    volumes:
+      - ./conf/alertmanager/alertmanager.yml:/etc/alertmanager/config.yml:z
+      - /etc/localtime:/etc/localtime:z
+    expose:
+      - 9093
+    ports:
+      - 9093:9093
+
+  cadvisor:
+    image: google/cadvisor:latest
+    container_name: monitoring_cadvisor
+    restart: unless-stopped
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    expose:
+      - 8080
+    ports:
+      - 8080:8080
+  
+  grafana:
+    image: grafana/grafana:latest
+    container_name: monitoring_grafana
+    restart: unless-stopped
+    links:
+      - prometheus:prometheus
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=xxxxxx
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_DOMAIN=oslet.net
+      - GF_SMTP_ENABLED=true
+      - GF_SMTP_HOST=mail.xxxxxx.com:25
+      - GF_SMTP_USER=useradmin@example.com
+      - GF_SMTP_PASSWORD=for-your-password
+      - GF_SMTP_FROM_ADDRESS=useradmin@example.com
+    expose:
+      - 3000
+    ports:
+      - 3000:3000
+

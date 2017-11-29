@@ -1,0 +1,144 @@
+global:
+  scrape_interval: 60s
+  scrape_timeout: 60s
+  evaluation_interval: 1m 
+  external_labels:
+    monitor: plateno-monitor
+rule_files:
+- "rules.d/*.yml"
+
+alerting:
+  alertmanagers:
+  - scheme: http
+    static_configs:
+    - targets:
+      - "10.100.14.41:9093"
+
+scrape_configs:
+- job_name: prometheus
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  metrics_path: /metrics
+  scheme: http
+  static_configs:
+  - targets:
+    - localhost:9090
+
+- job_name: 'ceph-exporter'
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  metrics_path: /metrics
+  scheme: http
+  static_configs:
+  - targets:
+      ['10.100.114.149:9128','10.100.114.150:9128','10.100.114.151:9128']
+
+
+- job_name: 'node-exporter'
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  metrics_path: /metrics
+  scheme: http
+  static_configs:
+  - targets:
+    - 10.100.114.149:9100
+    - 10.100.114.150:9100
+    - 10.100.114.151:9100
+    - 10.100.114.152:9100
+    - 10.100.114.172:9100
+    - 10.100.114.173:9100
+    - 10.100.114.174:9100
+    - 10.100.114.175:9100
+    - 10.100.114.179:9100
+    - 10.100.114.180:9100
+    - 10.100.114.183:9100
+    labels:
+      container_group: 'k8snode'
+
+  - targets:
+    - node-exporter:9100
+    labels:
+      container_group: 'promnode'
+
+  - targets:
+    - cadvisor:8080
+    - 10.100.114.149:4194
+    - 10.100.114.150:4194
+    - 10.100.114.151:4194
+    - 10.100.114.152:4194
+    - 10.100.114.172:4194
+    - 10.100.114.173:4194
+    - 10.100.114.174:4194
+    - 10.100.114.175:4194
+    - 10.100.114.179:4194
+    - 10.100.114.180:4194
+    - 10.100.114.183:4194
+    labels:
+      container_group: 'cadvisornode'
+
+- job_name: 'ping_all'
+  scrape_interval: 10s
+  metrics_path: /probe
+  params:
+    module: [icmp]  #ping
+  static_configs:
+    - targets: ['219.150.32.132']
+      labels:
+        group: '一线城市-电信网络监控'
+    - targets: ['218.8.251.163']
+      labels:
+        group: '一线城市-联通网络监控'
+    - targets: ['211.137.241.34']
+      labels:
+        group: '一线城市-移动网络监控'
+    - targets: ['61.233.168.1']
+      labels:
+        group: '一线城市-铁通网络监控'
+    - targets: ['219.150.32.132']
+      labels:
+        group: '二线城市-电信网络监控'
+    - targets: ['60.24.4.1']
+      labels:
+        group: '二线城市-联通网络监控'
+    - targets: ['211.137.160.5']
+      labels:
+        group: '二线城市-移动网络监控'
+    - targets: ['61.234.70.2']
+      labels:
+        group: '二线城市-铁通网络监控'
+    - targets: ['166.111.8.28']
+      labels:
+        group: '教育网络监控'
+  relabel_configs:
+    - source_labels: [__address__]
+      regex: (.*)(:80)?
+      target_label: __param_target
+      replacement: ${1}
+    - source_labels: [__param_target]
+      regex: (.*)
+      target_label: ping
+      replacement: ${1}
+    - source_labels: []
+      regex: .*
+      target_label: __address__
+      replacement: 10.100.14.41:9115  # Blackbox exporter.
+
+
+- job_name: 'get http status'
+  scrape_interval: 10s
+  metrics_path: /probe
+  params:
+    module: [http_2xx]  # Look for a HTTP 200 response.
+  static_configs:
+    - targets:
+      - http://sso.platenogroup.com
+      - https://sso.platenogroup.com
+      - http://oa.platenogroup.com
+      - https://www.oslet.net # Target to probe with http on port 8080.
+  relabel_configs:
+    - source_labels: [__address__]
+      target_label: __param_target
+    - source_labels: [__param_target]
+      target_label: instance
+    - target_label: __address__
+      replacement: 10.100.14.41:9115  # Blackbox exporter.

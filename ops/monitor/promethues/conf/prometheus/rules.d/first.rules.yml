@@ -1,0 +1,54 @@
+groups:
+- name: first.rules
+  rules:
+  - alert: 实例当了
+    expr: up == 0
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: '{{$labels.instance}} of job {{$labels.job}} 已经当1分钟了'
+      summary: 'Instance {{$labels.instance}} is down'
+  - alert: 实例CPU较高
+    expr: 100 - (avg(irate(node_cpu{mode="idle"}[5m])) BY (instance) * 100) > 80
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: '{{$labels.instance}} cpu使用已超过80%,当前值为: {{ $value }}'
+      summary: 'Instance {{$labels.instance}}: cpu high'
+  - alert: 实例内存低
+    expr: ((node_memory_MemTotal{} - node_memory_MemAvailable{}) / node_memory_MemTotal{}) * 100 > 90
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: '{{$labels.instance}} 内存空余比例已少于10%,当前值为: {{ $value }}'
+      summary: 'Instance {{$labels.instance}}: memory low'
+  - alert: 实例磁盘空间少了
+    expr: min(node_filesystem_free{device!="rootfs"} / node_filesystem_size{device!="rootfs"}) * 100 < 10
+    for: 1m
+    labels:
+      severity: warning
+    annotations:
+      description: '{{$labels.instance}} 磁盘空余比例已少于10%,当前值为: {{ $value }}'
+      summary: 'Instance {{$labels.instance}}: low disk space'
+  - alert: 实例启动
+    expr: time() - container_start_time_seconds{image=~"docker.plateno.cc/.*"}
+      <= 60 and (container_start_time_seconds{image=~"docker.plateno.cc/.*"}
+      % (60 * 60 * 24) / (60 * 60) < 6.8 or container_start_time_seconds{image=~"docker.plateno.cc/.*"}
+      % (60 * 60 * 24) / (60 * 60) > 7.5)
+    labels:
+      severity: warning
+    annotations:
+      description: Container {{$labels.image}} has been started on {{$labels.instance}}
+      summary: Container {{$labels.image}} started
+  - alert: 实例停止
+    expr: time() - container_last_seen{image=~"docker.plateno.cc/.*"} >
+      60 * 5
+    labels:
+      severity: warning
+    annotations:
+      description: Container {{$labels.image}} has been stopped on {{$labels.instance}}
+      summary: Container {{$labels.image}} stopped
+

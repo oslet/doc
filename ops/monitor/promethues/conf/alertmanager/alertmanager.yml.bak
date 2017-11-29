@@ -1,0 +1,15 @@
+global:
+  resolve_timeout: 1m
+
+route:
+  group_by: ['alertname']
+  group_wait: 5s
+  group_interval: 10s
+  repeat_interval: 10s
+  receiver: 'webhook'
+
+receivers:
+- name: 'webhook'
+  webhook_configs:
+  - url: 'http://10.100.14.41:8065/hooks/98s1md9yc7bnzdb493j73thiqc'
+    send_resolved: true
