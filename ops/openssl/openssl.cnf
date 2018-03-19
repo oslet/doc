@@ -13,8 +13,8 @@ crlnumber     = $dir/crlnumber         # current crl number
 private_key   = $dir/private/cakey.pem # CA private key
 
 default_md       = default        # digest method
-default_days     = 30             # how long to certify for
-default_crl_days = 30             # how long before next CRL
+default_days     = 1800             # how long to certify for
+default_crl_days = 1800           # how long before next CRL
 
 policy        = policy_ca
 

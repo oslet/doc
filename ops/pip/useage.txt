@@ -1,0 +1,2 @@
+pip install ansible==2.4.2 --download="download"   //下载所有相关文件
+pip install ansible==2.4.2 --no-index --find-links file:///root/pypi/download   //从本地目录安装

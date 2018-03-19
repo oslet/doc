@@ -25,7 +25,7 @@ function newca()
     openssl ca ${SSLCNF} -keyfile ${CAKEY} \
         -selfsign -create_serial           \
         -extensions v3_ca_cert             \
-        -days 7305 -batch                  \
+        -days 3650 -batch                  \
         -out ${CACERT}                     \
         -outdir ${CATOP}/newcerts          \
         -infiles ${CATOP}/careq.pem
