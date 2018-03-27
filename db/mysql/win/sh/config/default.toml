@@ -1,0 +1,21 @@
+from = "check_port_webcoder@in.7daysinn.cn"
+to = "check_port_webcoder@in.7daysinn.cn"
+subject = "svn backup is finished"
+attachFile = "./test/attach.png"
+contentType = "text/html"
+body = '''<h1>When I find myself in times of trouble
+Mother Mary comes to me
+Speaking words of wisdom, let it be
+And in my hour of darkness
+She is standing right in front of me
+Speaking words of wisdom, let it be
+Let it be, let it be
+Let it be, let it be
+Whisper words of wisdom, let it be</h1>
+'''
+
+[smtp]
+user = "check_port_webcoder@in.7daysinn.cn"
+pwd = "mKSbCWDH0jJwp--k94rGv3dq33QwbeTc"
+host = "mail.in.7daysinn.cn"
+port = "25"
