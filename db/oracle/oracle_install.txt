@@ -92,15 +92,6 @@ mkdir -p /mount_point/app
 chown -R oracle:oinstall /mount_point/app
 chmod -R 755 /mount_point/app
 
-6.Configuring the oracle User's Environment
-remote install: set the DISPLAY variable:
-export DISPLAY=local_host:0.0
-
-set the ORACLE_BASE and ORACLE_SID
-ORACLE_BASE=/u01/app/oracle
-ORACLE_SID=orcl
-export ORACLE_BASE ORACLE_SID
-
 
 6.Mounting the Product Disc
 eject /mnt/dvd
@@ -114,24 +105,24 @@ netca.rsp: 建立监听，本地服务名等网络设置的应答
 如下一份是db_install.rsp，依情况修改
 oracle.install.responseFileVersion=/oracle/install/rspfmt_dbinstall_response_schema_v11_2_0
 oracle.install.option=INSTALL_DB_SWONLY
-ORACLE_HOSTNAME=oracledb
+ORACLE_HOSTNAME=web-22-EBS-01
 UNIX_GROUP_NAME=oinstall
 INVENTORY_LOCATION=/data/oracle_oraInventory
 SELECTED_LANGUAGES=en,zh_CN
 ORACLE_HOME=/data/oracle/product/11.2.0/db_1
 ORACLE_BASE=/data/oracle
-oracle.install.db.InstallEdition=EE
+oracle.install.db.InstallEdition=SE
 oracle.install.db.isCustomInstall=false
 oracle.install.db.customComponents=oracle.server:11.2.0.1.0,oracle.sysman.ccr:10.2.7.0.0,oracle.xdk:11.2.0.1.0,oracle.rdbms.oci:11.2.0.1.0,oracle.network:11.2.0.1.0,oracle.network.listener:11.2.0.1.0,oracle.rdbms:11.2.0.1.0,oracle.options:11.2.0.1.0,oracle.rdbms.partitioning:11.2.0.1.0,oracle.oraolap:11.2.0.1.0,oracle.rdbms.dm:11.2.0.1.0,oracle.rdbms.dv:11.2.0.1.0,orcle.rdbms.lbac:11.2.0.1.0,oracle.rdbms.rat:11.2.0.1.0
 oracle.install.db.DBA_GROUP=dba
 oracle.install.db.OPER_GROUP=oinstall
 oracle.install.db.CLUSTER_NODES=
-oracle.install.db.config.starterdb.type=GENERAL_PURPOSE
-oracle.install.db.config.starterdb.globalDBName=orcl
-oracle.install.db.config.starterdb.SID=orcl
+oracle.install.db.config.starterdb.type=
+oracle.install.db.config.starterdb.globalDBName=prod01
+oracle.install.db.config.starterdb.SID=prod01
 oracle.install.db.config.starterdb.characterSet=AL32UTF8
 oracle.install.db.config.starterdb.memoryOption=true
-oracle.install.db.config.starterdb.memoryLimit=2048
+oracle.install.db.config.starterdb.memoryLimit=
 oracle.install.db.config.starterdb.installExampleSchemas=false
 oracle.install.db.config.starterdb.enableSecuritySettings=true
 oracle.install.db.config.starterdb.password.ALL=orcl
@@ -147,7 +138,7 @@ oracle.install.db.config.starterdb.dbcontrol.SMTPServer=
 oracle.install.db.config.starterdb.automatedBackup.enable=false
 oracle.install.db.config.starterdb.automatedBackup.osuid=
 oracle.install.db.config.starterdb.automatedBackup.ospwd=
-oracle.install.db.config.starterdb.storageType=FILE_SYSTEM_STORAGE
+oracle.install.db.config.starterdb.storageType=
 oracle.install.db.config.starterdb.fileSystemStorage.dataLocation=
 oracle.install.db.config.starterdb.fileSystemStorage.recoveryLocation=
 oracle.install.db.config.asm.diskGroup=
@@ -155,18 +146,25 @@ oracle.install.db.config.asm.ASMSNMPPassword=
 MYORACLESUPPORT_USERNAME=
 MYORACLESUPPORT_PASSWORD=
 SECURITY_UPDATES_VIA_MYORACLESUPPORT=
-DECLINE_SECURITY_UPDATES=true    //一定要设为 true
+DECLINE_SECURITY_UPDATES=true
 PROXY_HOST=
 PROXY_PORT=
 PROXY_USER=
 PROXY_PWD=
 
-8.Installing Oracle Database
-export DISPLAY=:0.0
 
-/mount_point/db/runInstaller -silent -responseFile /usr/local/src/database/response/db_install.rsp
+8.Installing Oracle Database
+export DISPLAY=:0.0   //图形安装需要,一般不需要设置
+
+/usr/local/src/database/runInstaller -silent -responseFile /usr/local/src/database/response/db_install.rsp
 需等10分钟左右安装完成，中途可以看到安装日志
 
+cat >> ~/.bash_profile << EOF
+export ORACLE_HOME=/data/oracle/product/11.2.0/db_1
+export ORACLE_BASE=/data/oracle
+EOF
+
+source ~/.bash_profile
 
 9.配置监听
 $ORACLE_HOME/bin/netca /silent /responsefile /usr/local/src/database/response/netca.rsp
@@ -177,8 +175,8 @@ $ORACLE_HOME/bin/lsnrctl start LISTENER
 
 10.创建数据库
 vi /usr/local/src/database/response/dbca.rsp
-GDBNAME="VMS"
-SID="VMS"
+GDBNAME="prod01"
+SID="prod01"
 CHARACTERSET="AL32UTF8"
 NATIONALCHARACTERSET="UTF8"
 
@@ -186,8 +184,13 @@ $ORACLE_HOME/bin/dbca -silent -responsefile /usr/local/src/database/response/dbc
 会提示输入SYS以及SYSTEM用户密码
 
 11. 启动数据库
+
+cat >> ~/.bash_profile << EOF
+export ORACLE_SID=prod01
+export PATH=$PATH:$ORACLE_HOME/bin
+EOF
+
 sqlplus / as sysdba
-start
 startup
 
 启动过程中会有提示，默认读取initSID.ora配置文件,若没有复制一份(以init.ora为模板)
@@ -209,6 +212,13 @@ drop database;
 
 创建用户
 create user username identified by password
+
+
+CREATE TABLESPACE user01 DATAFILE '/data/oracle_tablespace/user01.ORA' SIZE 128M AUTOEXTEND ON NEXT 128M EXTENT MANAGEMENT LOCAL SEGMENT SPACE MANAGEMENT AUTO;
+
+GRANT CREATE SESSION,CREATE TRIGGER,CREATE PROCEDURE, CREATE SEQUENCE, CREATE TABLE, CREATE VIEW, CREATE PUBLIC SYNONYM, DROP PUBLIC SYNONYM TO user01;
+
+ALTER USER user01 QUOTA UNLIMITED ON user01;
 
 创建用户的Profile文件
 create profile vms_user limit
@@ -279,6 +289,10 @@ select tablespace_name, file_id, file_name,
 round(bytes/(1024*1024),0) total_space
 from dba_data_files
 order by tablespace_name;
+
+查看用户的表
+select count(*) from all_tables where owner='USER01';   //dba权限, owner后面的必须大写
+select table_name from user_tables;   //用户权限
 
 查实例名
 select instance_name from v$instance;   //查SID
